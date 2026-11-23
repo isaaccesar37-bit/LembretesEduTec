@@ -321,7 +321,7 @@
           <button id="new-reminder-button" onclick="openCurrentReminderForm()"
             class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-semibold px-4 py-2 rounded-xl shadow-sm transition text-sm">
             <i data-lucide="plus-circle" class="w-4 h-4"></i>
-            <span id="new-reminder-label">Novo Agendamento</span>
+            <span id="new-reminder-label">Novo Lembrete</span>
           </button>
         </div>
       </div>
@@ -455,9 +455,9 @@
         <div class="text-center"><h2 id="booking-calendar-title" class="text-base font-bold capitalize text-slate-900"></h2><p id="booking-calendar-count" class="text-xs text-slate-500"></p></div>
         <button type="button" onclick="changeBookingCalendarMonth(1)" aria-label="Próximo mês" class="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"><i data-lucide="chevron-right" class="h-4 w-4"></i></button>
       </div>
-      <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-500 sm:gap-2 sm:text-xs"><div class="py-2">Seg</div><div class="py-2">Ter</div><div class="py-2">Qua</div><div class="py-2">Qui</div><div class="py-2">Sex</div><div class="py-2">Sáb</div><div class="py-2">Dom</div></div>
-      <div id="booking-calendar-grid" class="grid grid-cols-7 gap-1 sm:gap-2"></div>
-      <p class="mt-3 text-[11px] text-slate-500">Cada item mostra horário, turma e professor. Selecione o dia para ver os agendamentos na lista.</p>
+      <div id="booking-calendar-weekdays" class="grid gap-1 text-center text-[10px] font-bold text-slate-500 sm:gap-2 sm:text-xs"></div>
+      <div id="booking-calendar-grid" class="space-y-1.5"></div>
+      <p class="mt-3 text-[11px] text-slate-500">A semana começa no domingo. Sábados e domingos aparecem somente quando há lembretes nessas datas.</p>
     </section>
 
     <!-- Lista / Linha do Tempo de Agendamentos -->
@@ -512,7 +512,7 @@
         <div><label for="workshop-teacher" class="block text-xs font-semibold text-slate-700 mb-1.5">Professora</label><input id="workshop-teacher" type="text" required maxlength="80" placeholder="Selecione a turma" readonly class="w-full rounded-xl border border-slate-300 bg-slate-100 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
         <div class="lg:col-span-2"><label for="workshop-slot" class="block text-xs font-semibold text-slate-700 mb-1.5">Horário</label><select id="workshop-slot" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"><option value="">Selecione o horário</option><option value="1">1º + 2º · 13:00–14:40</option><option value="2">2º + 3º · 13:50–15:30</option><option value="3">3º + 4º · 14:40–16:40</option><option value="4">4º + 5º · 15:50–17:30</option></select></div>
         <div class="sm:col-span-2 lg:col-span-6"><label for="workshop-notes" class="block text-xs font-semibold text-slate-700 mb-1.5">Observações (opcional)</label><input id="workshop-notes" type="text" maxlength="240" placeholder="Ex.: depois do recreio, material especial" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
-        <div class="sm:col-span-2 lg:col-span-6 flex justify-end gap-2"><button id="workshop-cancel-edit" type="button" onclick="closeWorkshopRegistration()" class="hidden rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button><button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"><i data-lucide="plus" class="w-4 h-4"></i><span id="workshop-save-label">Adicionar lembrete</span></button></div>
+        <div class="sm:col-span-2 lg:col-span-6 flex justify-end gap-2"><button id="workshop-cancel-edit" type="button" onclick="closeWorkshopRegistration()" class="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button><button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"><i data-lucide="plus" class="w-4 h-4"></i><span id="workshop-save-label">Agendar oficina</span></button></div>
       </form>
     </section>
     <section class="space-y-3" aria-label="Lembretes das oficinas de robótica">
@@ -521,7 +521,10 @@
           <button id="workshop-agenda-tab" type="button" role="tab" aria-selected="true" aria-controls="workshop-agenda-panel" onclick="switchWorkshopView('agenda')" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Agenda das oficinas</button>
           <button id="workshop-calendar-tab" type="button" role="tab" aria-selected="false" aria-controls="workshop-calendar-panel" onclick="switchWorkshopView('calendar')" class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">Calendário</button>
         </div>
-        <span id="workshop-count" class="text-xs font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">0</span>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="openWorkshopRegistration()" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:px-4 sm:text-sm"><i data-lucide="plus" class="h-4 w-4"></i><span>Agendar oficina</span></button>
+          <span id="workshop-count" class="text-xs font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">0</span>
+        </div>
       </div>
       <div id="workshop-agenda-panel" role="tabpanel" aria-labelledby="workshop-agenda-tab">
         <div id="workshops-list" class="space-y-3"></div>
@@ -536,6 +539,7 @@
         <div class="overflow-x-auto">
           <div class="min-w-[650px]">
             <div class="grid grid-cols-5 gap-1.5 mb-1.5 text-center text-xs font-bold text-slate-500"><div class="py-2">Segunda</div><div class="py-2">Terça</div><div class="py-2">Quarta</div><div class="py-2">Quinta</div><div class="py-2">Sexta</div></div>
+            <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-semibold text-slate-600" aria-label="Legenda de status das oficinas"><span class="inline-flex items-center gap-1.5"><i class="h-2.5 w-2.5 rounded-sm bg-emerald-200"></i>Concluída</span><span class="inline-flex items-center gap-1.5"><i class="h-2.5 w-2.5 rounded-sm bg-amber-200"></i>Agendada / em andamento</span><span class="inline-flex items-center gap-1.5"><i class="h-2.5 w-2.5 rounded-sm bg-rose-200"></i>Atrasada</span></div>
             <div id="workshop-calendar-grid" class="space-y-1.5"></div>
           </div>
         </div>
@@ -1028,6 +1032,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     let professorLocatorFollowsCurrent = true;
     let professorScheduleIsWeekend = false;
     let professorCardQuery = '';
+    let expandedProfessorWeek = '';
     let currentUser = null;
     let cloudSyncReady = false;
     let cloudSaveTimer = null;
@@ -1391,7 +1396,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         else sidebarButton.removeAttribute('aria-current');
       });
       const label = document.getElementById('new-reminder-label');
-      if (label) label.textContent = 'Novo Agendamento';
+      if (label) label.textContent = 'Novo Lembrete';
       if (tab === 'workshops') {
         renderWorkshops();
         if (!document.getElementById('workshop-weekly-panel').classList.contains('hidden')) renderWorkshopWeeklyGrid();
@@ -1656,6 +1661,11 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         renderProfessorLocator();
       }));
 
+      currentContainer.querySelectorAll('[data-professor-week]').forEach(button => button.addEventListener('click', () => {
+        const selectedName = button.dataset.professorWeek;
+        expandedProfessorWeek = expandedProfessorWeek === normalizeProfessorName(selectedName) ? '' : normalizeProfessorName(selectedName);
+        renderProfessorLocator();
+      }));
       const dayEntries = getProfessorSlots()
         .filter(slot => slot.day === day)
         .flatMap(slot => slot.entries.filter(entry => entry.teacher === teacher)
@@ -1687,6 +1697,20 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
 
     }
 
+    function renderProfessorWeeklySchedule(name) {
+      const slots = getProfessorSlots()
+        .map(slot => ({ ...slot, entries: slot.entries.filter(entry => sameProfessorName(entry.teacher, name)) }))
+        .filter(slot => slot.entries.length)
+        .sort((a, b) => a.day - b.day || a.time.localeCompare(b.time));
+      if (!slots.length) return '<p class="mt-2 rounded-lg bg-slate-50 p-3 text-xs text-slate-500">Nenhum horário semanal cadastrado para este professor.</p>';
+      return '<div class="mt-2 space-y-2">' + PROFESSOR_SCHEDULE_DAYS.map((dayName, dayIndex) => {
+        const daySlots = slots.filter(slot => slot.day === dayIndex);
+        if (!daySlots.length) return '';
+        return '<section class="rounded-lg border border-slate-200 bg-white p-2.5"><h5 class="mb-1.5 text-[11px] font-bold text-slate-700">' + escapeHTML(dayName) + '</h5><div class="space-y-1">' + daySlots.map(slot =>
+          '<div class="flex items-start gap-2 text-[11px]"><span class="w-24 shrink-0 font-semibold text-slate-500">' + escapeHTML(formatProfessorTime(slot.time)) + '</span><span class="font-medium text-slate-700">' + slot.entries.map(entry => escapeHTML(entry.className)).join(', ') + '</span></div>'
+        ).join('') + '</div></section>';
+      }).join('') + '</div>';
+    }
     function renderProfessorDirectoryCard(name, day, time, currentEntries, isSelected) {
       const scheduleEntries = currentEntries.filter(entry => entry.teacher === name);
       const today = getTodayISO();
@@ -1713,7 +1737,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         <p class="mt-1 flex min-w-0 items-start gap-1.5 text-[11px] font-semibold text-emerald-700"><i data-lucide="navigation" class="mt-0.5 h-3.5 w-3.5 shrink-0"></i><span class="min-w-0 break-words">${escapeHTML(location)}</span></p>
         <p class="mt-1 min-h-8 text-[11px] leading-relaxed text-slate-500">${escapeHTML(activity)}</p>
         <div class="mt-2 border-t border-slate-200 pt-2.5"><p class="mb-1.5 text-[10px] font-medium text-slate-400">Salas frequentes:</p><div class="flex flex-wrap gap-1.5 text-[10px] text-slate-600">${frequentHTML}</div></div>
-        <button type="button" data-professor-filter="${isSelected ? '' : escapeHTML(name)}" class="mt-3 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50">${isSelected ? 'Mostrar todos os professores' : 'Filtrar este professor'}</button>
+        ${isSelected ? `<button type="button" data-professor-week="${escapeHTML(name)}" class="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50">${expandedProfessorWeek === normalizeProfessorName(name) ? 'Ocultar semana' : 'Exibir semana'}</button>${expandedProfessorWeek === normalizeProfessorName(name) ? renderProfessorWeeklySchedule(name) : ''}` : ''}
+        <button type="button" data-professor-filter="${isSelected ? '' : escapeHTML(name)}" class="${isSelected ? 'mt-2' : 'mt-3'} w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50">${isSelected ? 'Mostrar todos os professores' : 'Filtrar este professor'}</button>
       </article>`;
     }
 
@@ -1933,8 +1958,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       handleWorkshopGradeChange();
       document.getElementById('workshop-id').value = '';
       document.getElementById('workshop-date').value = getTodayISO();
-      document.getElementById('workshop-save-label').textContent = 'Adicionar lembrete';
-      document.getElementById('workshop-cancel-edit').classList.add('hidden');
+      document.getElementById('workshop-save-label').textContent = 'Agendar oficina';
     }
 
     function saveWorkshop(event) {
@@ -2288,7 +2312,14 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           const inMonth = cellDate.getMonth() === month;
           const dayWorkshops = workshops.filter(item => item.date === dateISO).sort((a, b) => a.startTime.localeCompare(b.startTime));
           const eventHTML = dayWorkshops.length
-            ? dayWorkshops.map(item => `<div class="mt-1 rounded-lg px-1.5 py-1 text-left text-[10px] leading-tight ${item.status === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-100 text-emerald-900'}"><b>${escapeHTML(item.grade)}º Ano</b><br>${escapeHTML(item.startTime)} · ${escapeHTML(item.teacher)}</div>`).join('')
+            ? dayWorkshops.map(item => {
+                const completed = item.status === 'completed';
+                const slotEndTime = ROBOTICS_WORKSHOP_SLOTS[String(item.slot)]?.endTime || item.startTime;
+                const overdue = !completed && parseDateTime(item.date, slotEndTime).getTime() < Date.now();
+                const statusLabel = completed ? 'Concluída' : overdue ? 'Atrasada' : item.status === 'started' ? 'Em andamento' : 'Agendada';
+                const statusColor = completed ? 'bg-emerald-100 text-emerald-800' : overdue ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-900';
+                return `<div class="mt-1 rounded-lg px-1.5 py-1 text-left text-[10px] leading-tight ${statusColor}" title="${statusLabel} · ${escapeHTML(item.teacher || '')}"><b>${escapeHTML(item.grade)}º Ano</b><br>${escapeHTML(item.startTime)} · ${escapeHTML(item.teacher)}</div>`;
+              }).join('')
             : '<span class="mt-1 block text-[10px] text-slate-300">—</span>';
           cells.push(`<div class="min-h-[112px] rounded-xl border ${inMonth ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50/70'} p-1.5 sm:p-2"><button type="button" onclick="selectWorkshopCalendarDate('${dateISO}')" class="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${dateISO === today ? 'bg-emerald-600 text-white' : inMonth ? 'text-slate-700 hover:bg-emerald-50' : 'text-slate-300 hover:bg-slate-100'}" aria-label="Adicionar oficina em ${dateISO}">${cellDate.getDate()}</button>${eventHTML}</div>`);
         }
@@ -2666,33 +2697,54 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     function renderBookingCalendar() {
       const title = document.getElementById('booking-calendar-title');
       const grid = document.getElementById('booking-calendar-grid');
-      if (!title || !grid) return;
+      const weekdays = document.getElementById('booking-calendar-weekdays');
+      if (!title || !grid || !weekdays) return;
       const year = bookingCalendarDate.getFullYear();
       const month = bookingCalendarDate.getMonth();
       const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
       title.textContent = bookingCalendarDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
       document.getElementById('booking-calendar-count').textContent = `${bookings.filter(item => String(item.date || '').startsWith(monthKey)).length} agendamento(s) no mês`;
-      const offset = (new Date(year, month, 1).getDay() + 6) % 7;
-      const start = new Date(year, month, 1 - offset);
+
+      const weekdayLabels = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      const hasWeekendReminder = weekday => bookings.some(item => {
+        if (!String(item.date || '').startsWith(monthKey)) return false;
+        return new Date(`${item.date}T12:00:00`).getDay() === weekday;
+      });
+      const visibleWeekdays = [0, 1, 2, 3, 4, 5, 6].filter(day =>
+        (day !== 0 && day !== 6) || hasWeekendReminder(day)
+      );
+      const columns = `repeat(${visibleWeekdays.length}, minmax(0, 1fr))`;
+      weekdays.style.gridTemplateColumns = columns;
+      weekdays.innerHTML = visibleWeekdays.map(day => `<div class="py-2">${weekdayLabels[day]}</div>`).join('');
+
+      const firstOfMonth = new Date(year, month, 1);
+      const start = new Date(year, month, 1 - firstOfMonth.getDay());
       const today = getTodayISO();
-      const cells = [];
-      for (let index = 0; index < 42; index++) {
-        const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index);
-        const isoDate = localDateToISO(date);
-        const inMonth = date.getMonth() === month;
-        const dayBookings = bookings.filter(item => item.date === isoDate).sort((a, b) => String(a.deliveryTime || '').localeCompare(String(b.deliveryTime || '')));
-        const events = dayBookings.length
-          ? dayBookings.map(item => {
-              const statusClass = item.status === 'completed' ? 'bg-slate-100 text-slate-600' : item.status === 'in_use' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-800';
-              return `<div class="truncate rounded px-1 py-0.5 text-left text-[8px] leading-tight sm:text-[10px] ${statusClass}" title="${escapeHTML(item.deliveryTime || '')} · ${escapeHTML(item.className || '')} · ${escapeHTML(item.teacher || '')}"><b>${escapeHTML(item.deliveryTime || '')}</b> ${escapeHTML(item.className || '')}<span class="hidden sm:inline"> · ${escapeHTML(item.teacher || '')}</span></div>`;
-            }).join('')
-          : '';
-        cells.push(`<div role="button" tabindex="0" onclick="openBookingCalendarDay('${isoDate}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBookingCalendarDay('${isoDate}')}" aria-label="Abrir detalhes dos agendamentos de ${formatDateBR(isoDate)}" class="min-h-[76px] cursor-pointer overflow-hidden rounded-lg border ${inMonth ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50/60'} p-1 transition hover:border-emerald-300 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500 sm:min-h-[108px] sm:rounded-xl sm:p-1.5"><span class="mb-1 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${isoDate === today ? 'bg-emerald-600 text-white' : inMonth ? 'text-slate-700' : 'text-slate-300'}">${date.getDate()}</span><div class="max-h-[76px] space-y-0.5 overflow-y-auto sm:max-h-[82px]">${events}</div></div>`);
+      const rows = [];
+      for (let week = 0; week < 6; week++) {
+        const cells = [];
+        for (const weekday of visibleWeekdays) {
+          const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + week * 7 + weekday);
+          const isoDate = localDateToISO(date);
+          const inMonth = date.getMonth() === month;
+          const dayBookings = bookings.filter(item => item.date === isoDate).sort((a, b) => String(a.deliveryTime || '').localeCompare(String(b.deliveryTime || '')));
+          if ((weekday === 0 || weekday === 6) && !dayBookings.length) {
+            cells.push('<div aria-hidden="true" class="invisible min-h-[76px] sm:min-h-[108px]"></div>');
+            continue;
+          }
+          const events = dayBookings.length
+            ? dayBookings.map(item => {
+                const statusClass = item.status === 'completed' ? 'bg-slate-100 text-slate-600' : item.status === 'in_use' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-800';
+                return `<div class="truncate rounded px-1 py-0.5 text-left text-[8px] leading-tight sm:text-[10px] ${statusClass}" title="${escapeHTML(item.deliveryTime || '')} · ${escapeHTML(item.className || '')} · ${escapeHTML(item.teacher || '')}"><b>${escapeHTML(item.deliveryTime || '')}</b> ${escapeHTML(item.className || '')}<span class="hidden sm:inline"> · ${escapeHTML(item.teacher || '')}</span></div>`;
+              }).join('')
+            : '';
+          cells.push(`<div role="button" tabindex="0" onclick="openBookingCalendarDay('${isoDate}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBookingCalendarDay('${isoDate}')}" aria-label="Abrir detalhes dos agendamentos de ${formatDateBR(isoDate)}" class="min-h-[76px] cursor-pointer overflow-hidden rounded-lg border ${inMonth ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50/60'} p-1 transition hover:border-emerald-300 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500 sm:min-h-[108px] sm:rounded-xl sm:p-1.5"><span class="mb-1 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${isoDate === today ? 'bg-emerald-600 text-white' : inMonth ? 'text-slate-700' : 'text-slate-300'}">${date.getDate()}</span><div class="max-h-[76px] space-y-0.5 overflow-y-auto sm:max-h-[82px]">${events}</div></div>`);
+        }
+        rows.push(`<div class="grid gap-1 sm:gap-2" style="grid-template-columns:${columns}">${cells.join('')}</div>`);
       }
-      grid.innerHTML = cells.join('');
+      grid.innerHTML = rows.join('');
       lucide.createIcons();
     }
-
     function setDateFilter(filter, date = '') {
       currentDateFilter = filter;
       selectedBookingCalendarDate = filter === 'specific' ? date : '';
@@ -3611,4 +3663,5 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
   </dialog>
 </body>
 </html>
+
 
