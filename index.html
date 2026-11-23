@@ -410,6 +410,10 @@
             class="date-filter-btn flex-1 lg:flex-none px-3.5 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 hover:text-slate-900">
             Todas as Datas
           </button>
+          <button id="booking-calendar-toggle" type="button" onclick="toggleBookingCalendar()" aria-label="Abrir calendário de agendamentos" aria-expanded="false" title="Calendário de agendamentos"
+            class="flex h-8 w-9 shrink-0 items-center justify-center rounded-lg text-slate-600 transition hover:bg-white hover:text-emerald-700">
+            <i data-lucide="calendar-days" class="h-4 w-4"></i>
+          </button>
         </div>
 
         <!-- Filtro de Status -->
@@ -443,6 +447,17 @@
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
+    </section>
+
+    <section id="booking-calendar-panel" class="hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5" aria-label="Calendário de agendamentos">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <button type="button" onclick="changeBookingCalendarMonth(-1)" aria-label="Mês anterior" class="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"><i data-lucide="chevron-left" class="h-4 w-4"></i></button>
+        <div class="text-center"><h2 id="booking-calendar-title" class="text-base font-bold capitalize text-slate-900"></h2><p id="booking-calendar-count" class="text-xs text-slate-500"></p></div>
+        <button type="button" onclick="changeBookingCalendarMonth(1)" aria-label="Próximo mês" class="rounded-xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"><i data-lucide="chevron-right" class="h-4 w-4"></i></button>
+      </div>
+      <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-500 sm:gap-2 sm:text-xs"><div class="py-2">Seg</div><div class="py-2">Ter</div><div class="py-2">Qua</div><div class="py-2">Qui</div><div class="py-2">Sex</div><div class="py-2">Sáb</div><div class="py-2">Dom</div></div>
+      <div id="booking-calendar-grid" class="grid grid-cols-7 gap-1 sm:gap-2"></div>
+      <p class="mt-3 text-[11px] text-slate-500">Cada item mostra horário, turma e professor. Selecione o dia para ver os agendamentos na lista.</p>
     </section>
 
     <!-- Lista / Linha do Tempo de Agendamentos -->
@@ -562,7 +577,7 @@
       </div>
     </section>
     <section id="professor-current-location" aria-live="polite"></section>
-    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <section class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2"><div><h3 class="font-bold text-slate-900">Outros horários deste dia</h3><p id="professor-day-summary" class="text-xs text-slate-500 mt-1">Selecione um professor para consultar a agenda.</p></div><span class="text-[11px] rounded-full bg-slate-100 text-slate-600 px-2.5 py-1">Horário escolar 2026</span></div>
       <div id="professor-day-list" class="p-3 sm:p-4 space-y-2"></div>
     </section>
@@ -925,8 +940,22 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       })));
     }
     function getProfessorNames() {
-      return [...new Set([...(settings.professorNames || []), ...(settings.professorSchedule || []).map(item => item.teacher), ...(bookings || []).map(item => item.teacher), ...(settings.workshops || []).map(item => item.teacher)].filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      const sourceNames = [...(settings.professorNames || []), ...(settings.professorSchedule || []).map(item => item.teacher), ...(bookings || []).map(item => item.teacher), ...(settings.workshops || []).map(item => item.teacher)].filter(Boolean);
+      const uniqueNames = new Map();
+      sourceNames.forEach(name => {
+        const displayName = canonicalizeProfessorLocatorName(name);
+        const key = normalizeProfessorName(displayName);
+        if (key && !uniqueNames.has(key)) uniqueNames.set(key, displayName);
+      });
+      return [...uniqueNames.values()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    }
+    function canonicalizeProfessorLocatorName(name) {
+      const normalized = normalizeProfessorName(name);
+      if (normalized === 'ana flavia' || normalized === 'ana flavia alves resende') return 'ANA FLAVIA ALVES RESENDE';
+      return String(name || '').trim();
+    }
+    function sameProfessorName(first, second) {
+      return normalizeProfessorName(canonicalizeProfessorLocatorName(first)) === normalizeProfessorName(canonicalizeProfessorLocatorName(second));
     }
     function getManagedProfessorNames() {
       return [...new Set([...(settings.professorNames || []), ...(settings.professorSchedule || []).map(item => item.teacher)].filter(Boolean))]
@@ -961,7 +990,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       (settings.professorSchedule || []).forEach(item => {
         const key = item.day + '|' + item.time;
         if (!slots.has(key)) slots.set(key, { day: Number(item.day), time: item.time, entries: [] });
-        slots.get(key).entries.push({ teacher: item.teacher, className: item.className });
+        slots.get(key).entries.push({ teacher: canonicalizeProfessorLocatorName(item.teacher), className: item.className });
       });
       return [...slots.values()];
     }
@@ -1010,6 +1039,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     let currentDateFilter = 'today';
     let currentStatusFilter = 'all';
     let currentSearchQuery = '';
+    let bookingCalendarDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    let selectedBookingCalendarDate = '';
     let modalSelectedEquipments = []; // [{ name: 'Notebook', qty: 10 }]
     let pickupTimeManuallyEdited = false;
     let bannerDismissedUntil = 0;
@@ -1569,8 +1600,16 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           const rooms = allSlots.flatMap(slot => slot.entries.filter(entry => entry.teacher === name).map(entry => entry.className)).join(' ');
           return `${name} ${rooms}`.toLocaleLowerCase('pt-BR').includes(searchText);
         });
-        currentContainer.innerHTML = '<div class="space-y-3"><div class="flex min-w-0 flex-wrap items-end justify-between gap-3"><div><h3 class="font-bold text-slate-900">Localizador em Tempo Real</h3><p class="text-xs text-slate-500">Consulte a localização, atividade e salas frequentes de cada docente.</p></div><label class="relative block w-full sm:w-56"><span class="sr-only">Filtrar por nome do professor ou sala</span><i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i><input id="professor-card-search" type="search" value="' + escapeHTML(professorCardQuery) + '" oninput="filterProfessorCards(this.value)" placeholder="Filtrar professor ou sala..." class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-xs focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"></label></div>' +
-          (names.length ? matchingNames.length ? '<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">' + matchingNames.map(name => renderProfessorDirectoryCard(name, day, time, currentEntries, false)).join('') + '</div>' : '<p id="professor-card-empty" class="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-center text-sm text-slate-500">Nenhum professor corresponde ao filtro.</p>' : '<div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">Nenhum professor cadastrado. Cadastre professores nas configurações para exibi-los aqui.</div>') + '</div>';
+        let cardGrid = document.getElementById('professor-directory-cards');
+        if (!cardGrid) {
+          currentContainer.innerHTML = '<div class="space-y-3"><div class="flex min-w-0 flex-wrap items-end justify-between gap-3"><div><h3 class="font-bold text-slate-900">Localizador em Tempo Real</h3><p class="text-xs text-slate-500">Consulte a localização, atividade e salas frequentes de cada docente.</p></div><label class="relative block w-full sm:w-56"><span class="sr-only">Filtrar por nome do professor ou sala</span><i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i><input id="professor-card-search" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + escapeHTML(professorCardQuery) + '" oninput="filterProfessorCards(this.value)" placeholder="Filtrar professor ou sala..." class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-xs focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"></label></div><div id="professor-directory-cards"></div></div>';
+          cardGrid = document.getElementById('professor-directory-cards');
+        }
+        cardGrid.innerHTML = names.length
+          ? matchingNames.length
+            ? '<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">' + matchingNames.map(name => renderProfessorDirectoryCard(name, day, time, currentEntries, false)).join('') + '</div>'
+            : '<p id="professor-card-empty" class="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-center text-sm text-slate-500">Nenhum professor corresponde ao filtro.</p>'
+          : '<div class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">Nenhum professor cadastrado. Cadastre professores nas configurações para exibi-los aqui.</div>';
         summary.textContent = allDayEntries.length
           ? allDayEntries.length + (allDayEntries.length === 1 ? ' aula registrada' : ' aulas registradas') + ' para todos os professores na ' + PROFESSOR_SCHEDULE_DAYS[day] + '.'
           : 'Nenhuma aula registrada para este dia.';
@@ -1624,20 +1663,16 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     function filterProfessorCards(value) {
       professorCardQuery = String(value || '');
       renderProfessorLocator();
-      const input = document.getElementById('professor-card-search');
-      if (input) {
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-      }
+
     }
 
     function renderProfessorDirectoryCard(name, day, time, currentEntries, isSelected) {
       const scheduleEntries = currentEntries.filter(entry => entry.teacher === name);
       const today = getTodayISO();
-      const todayBookings = bookings.filter(item => item.teacher === name && item.date === today && item.status !== 'completed');
+      const todayBookings = bookings.filter(item => sameProfessorName(item.teacher, name) && item.date === today && item.status !== 'completed');
       const activeBooking = todayBookings.find(item => item.status === 'in_use');
       const pendingBooking = todayBookings.find(item => item.status === 'pending');
-      const todayWorkshop = (settings.workshops || []).find(item => item.teacher === name && item.date === today && item.status !== 'completed');
+      const todayWorkshop = (settings.workshops || []).find(item => sameProfessorName(item.teacher, name) && item.date === today && item.status !== 'completed');
       const isScheduledNow = scheduleEntries.length && professorLocatorFollowsCurrent && day === new Date().getDay() && !professorScheduleIsWeekend;
       const status = activeBooking || isScheduledNow ? 'Em Atividade' : pendingBooking || todayWorkshop ? 'Agendado Hoje' : 'Sala dos Professores / Livre';
       const statusClass = status === 'Em Atividade' ? 'bg-emerald-100 text-emerald-800' : status === 'Agendado Hoje' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700';
@@ -1649,7 +1684,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       else if (todayWorkshop) activity = `Oficina de robótica${todayWorkshop.notes ? ': ' + todayWorkshop.notes : ''} (${todayWorkshop.startTime})`;
       else if (scheduleEntries.length) activity = `Turma no horário selecionado · ${time ? formatProfessorTime(time) : 'fora do horário escolar'}`;
       const frequentRooms = [...new Set(getProfessorSlots().flatMap(slot => slot.entries.filter(entry => entry.teacher === name).map(entry => entry.className)))];
-      const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toLocaleUpperCase('pt-BR');
+      const initials = normalizeProfessorName(name) === 'ana flavia alves resende' ? 'AF' : name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toLocaleUpperCase('pt-BR');
       const frequentHTML = frequentRooms.length ? frequentRooms.slice(0, 5).map(room => `<span class="rounded-md border border-slate-200 bg-white px-2 py-1">${escapeHTML(room)}</span>`).join('') : '<span class="text-slate-400">Nenhuma sala cadastrada</span>';
       return `<article class="min-w-0 rounded-2xl border border-slate-200 bg-slate-50/40 p-4 shadow-sm">
         <div class="flex items-center justify-between gap-2"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">${escapeHTML(initials)}</span><span class="max-w-[68%] truncate rounded-full px-2.5 py-1 text-[10px] font-semibold ${statusClass}">${escapeHTML(status)}</span></div>
@@ -1783,6 +1818,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       let filtered = bookings.filter((b) => {
         if (currentDateFilter === 'today' && b.date !== todayISO) return false;
         if (currentDateFilter === 'tomorrow' && b.date !== tomorrowISO) return false;
+        if (currentDateFilter === 'specific' && b.date !== selectedBookingCalendarDate) return false;
         if (currentStatusFilter !== 'all' && b.status !== currentStatusFilter) return false;
 
         if (currentSearchQuery.trim() !== '') {
@@ -1815,7 +1851,9 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         tomorrow: 'Agendamentos de Amanhã',
         all: 'Todos os Agendamentos'
       };
-      document.getElementById('timeline-heading').textContent = headingMap[currentDateFilter];
+      document.getElementById('timeline-heading').textContent = currentDateFilter === 'specific'
+        ? `Agendamentos de ${formatDateBR(selectedBookingCalendarDate)}`
+        : headingMap[currentDateFilter];
       document.getElementById('visible-count').textContent = filtered.length;
 
       const listEl = document.getElementById('bookings-list');
@@ -1830,6 +1868,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       }
 
       lucide.createIcons();
+      const bookingCalendarPanel = document.getElementById('booking-calendar-panel');
+      if (bookingCalendarPanel && !bookingCalendarPanel.classList.contains('hidden')) renderBookingCalendar();
+      const bookingDayDialog = document.getElementById('booking-day-dialog');
+      if (bookingDayDialog?.open) renderBookingCalendarDayDetails();
     }
 
     const ROBOTICS_WORKSHOP_SLOTS = {
@@ -2547,8 +2589,99 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       applyStatus();
     }
 
-    function setDateFilter(filter) {
+    function toggleBookingCalendar() {
+      const panel = document.getElementById('booking-calendar-panel');
+      const button = document.getElementById('booking-calendar-toggle');
+      const isOpening = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !isOpening);
+      button.setAttribute('aria-expanded', String(isOpening));
+      button.className = 'flex h-8 w-9 shrink-0 items-center justify-center rounded-lg transition ' + (isOpening ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-600 hover:bg-white hover:text-emerald-700');
+      document.querySelectorAll('.date-filter-btn').forEach(btn => {
+        const isSelected = !isOpening && btn.dataset.dateFilter === currentDateFilter;
+        btn.className = 'date-filter-btn flex-1 lg:flex-none px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ' + (isSelected ? 'bg-white text-brand-900 shadow-sm' : 'text-slate-600 hover:text-slate-900');
+      });
+      if (isOpening) renderBookingCalendar();
+    }
+
+    function changeBookingCalendarMonth(amount) {
+      bookingCalendarDate = new Date(bookingCalendarDate.getFullYear(), bookingCalendarDate.getMonth() + amount, 1);
+      renderBookingCalendar();
+    }
+
+    function openBookingCalendarDay(date) {
+      selectedBookingCalendarDate = date;
+      renderBookingCalendarDayDetails();
+      document.getElementById('booking-day-dialog').showModal();
+    }
+
+    function closeBookingCalendarDay() {
+      document.getElementById('booking-day-dialog').close();
+    }
+
+    function renderBookingCalendarDayDetails() {
+      const date = selectedBookingCalendarDate;
+      const title = document.getElementById('booking-day-title');
+      const list = document.getElementById('booking-day-details');
+      if (!date || !title || !list) return;
+      const dayBookings = bookings.filter(item => item.date === date).sort((a, b) => String(a.deliveryTime || '').localeCompare(String(b.deliveryTime || '')));
+      title.textContent = new Date(`${date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      if (!dayBookings.length) {
+        list.innerHTML = '<div class="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">Nenhum agendamento nesta data.</div>';
+        return;
+      }
+      list.innerHTML = dayBookings.map(item => {
+        const statusInfo = item.status === 'completed'
+          ? { label: 'Concluído', style: 'bg-slate-100 text-slate-700' }
+          : item.status === 'in_use'
+            ? { label: 'Em uso', style: 'bg-amber-100 text-amber-800' }
+            : { label: 'Pendente', style: 'bg-emerald-100 text-emerald-800' };
+        const equipmentList = Array.isArray(item.equipments) && item.equipments.length
+          ? item.equipments.map(equipment => `<span class="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">${escapeHTML(equipment.qty)}× ${escapeHTML(equipment.name)}</span>`).join('')
+          : '<span class="text-xs text-slate-500">Equipamentos não informados</span>';
+        return `<article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex flex-wrap items-start justify-between gap-2"><div><h3 class="font-bold text-slate-900">${escapeHTML(item.teacher || 'Professor(a) não informado(a)')}</h3><p class="mt-1 text-sm text-slate-600">Turma: <strong>${escapeHTML(item.className || 'Não informada')}</strong></p></div><span class="rounded-full px-2.5 py-1 text-xs font-bold ${statusInfo.style}">${statusInfo.label}</span></div><div class="mt-3 grid grid-cols-1 gap-2 rounded-xl bg-slate-50 p-3 text-sm sm:grid-cols-2"><p><span class="font-semibold text-slate-600">Entrega:</span> ${escapeHTML(item.deliveryTime || '—')}</p><p><span class="font-semibold text-slate-600">Devolução:</span> ${escapeHTML(item.pickupTime || '—')}</p></div><div class="mt-3 flex flex-wrap gap-1.5">${equipmentList}</div>${item.notes ? `<p class="mt-3 border-t border-slate-100 pt-3 text-sm text-slate-600">${escapeHTML(item.notes)}</p>` : ''}</article>`;
+      }).join('');
+    }
+
+    function renderBookingCalendar() {
+      const title = document.getElementById('booking-calendar-title');
+      const grid = document.getElementById('booking-calendar-grid');
+      if (!title || !grid) return;
+      const year = bookingCalendarDate.getFullYear();
+      const month = bookingCalendarDate.getMonth();
+      const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+      title.textContent = bookingCalendarDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      document.getElementById('booking-calendar-count').textContent = `${bookings.filter(item => String(item.date || '').startsWith(monthKey)).length} agendamento(s) no mês`;
+      const offset = (new Date(year, month, 1).getDay() + 6) % 7;
+      const start = new Date(year, month, 1 - offset);
+      const today = getTodayISO();
+      const cells = [];
+      for (let index = 0; index < 42; index++) {
+        const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index);
+        const isoDate = localDateToISO(date);
+        const inMonth = date.getMonth() === month;
+        const dayBookings = bookings.filter(item => item.date === isoDate).sort((a, b) => String(a.deliveryTime || '').localeCompare(String(b.deliveryTime || '')));
+        const events = dayBookings.length
+          ? dayBookings.map(item => {
+              const statusClass = item.status === 'completed' ? 'bg-slate-100 text-slate-600' : item.status === 'in_use' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-50 text-emerald-800';
+              return `<div class="truncate rounded px-1 py-0.5 text-left text-[8px] leading-tight sm:text-[10px] ${statusClass}" title="${escapeHTML(item.deliveryTime || '')} · ${escapeHTML(item.className || '')} · ${escapeHTML(item.teacher || '')}"><b>${escapeHTML(item.deliveryTime || '')}</b> ${escapeHTML(item.className || '')}<span class="hidden sm:inline"> · ${escapeHTML(item.teacher || '')}</span></div>`;
+            }).join('')
+          : '';
+        cells.push(`<div role="button" tabindex="0" onclick="openBookingCalendarDay('${isoDate}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openBookingCalendarDay('${isoDate}')}" aria-label="Abrir detalhes dos agendamentos de ${formatDateBR(isoDate)}" class="min-h-[76px] cursor-pointer overflow-hidden rounded-lg border ${inMonth ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50/60'} p-1 transition hover:border-emerald-300 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500 sm:min-h-[108px] sm:rounded-xl sm:p-1.5"><span class="mb-1 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${isoDate === today ? 'bg-emerald-600 text-white' : inMonth ? 'text-slate-700' : 'text-slate-300'}">${date.getDate()}</span><div class="max-h-[76px] space-y-0.5 overflow-y-auto sm:max-h-[82px]">${events}</div></div>`);
+      }
+      grid.innerHTML = cells.join('');
+      lucide.createIcons();
+    }
+
+    function setDateFilter(filter, date = '') {
       currentDateFilter = filter;
+      selectedBookingCalendarDate = filter === 'specific' ? date : '';
+      if (filter !== 'specific') {
+        const calendarPanel = document.getElementById('booking-calendar-panel');
+        const calendarButton = document.getElementById('booking-calendar-toggle');
+        calendarPanel.classList.add('hidden');
+        calendarButton.setAttribute('aria-expanded', 'false');
+        calendarButton.className = 'flex h-8 w-9 shrink-0 items-center justify-center rounded-lg text-slate-600 transition hover:bg-white hover:text-emerald-700';
+      }
       document.querySelectorAll('.date-filter-btn').forEach(btn => {
         if (btn.dataset.dateFilter === filter) {
           btn.className = 'date-filter-btn flex-1 lg:flex-none px-3.5 py-1.5 rounded-lg text-xs font-semibold transition bg-white text-brand-900 shadow-sm';
@@ -3402,6 +3535,13 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
   window.ROBOTICA_FOLLOWUP_SRCDOC = new TextDecoder().decode(bytes);
 })();
 </script>
+  <dialog id="booking-day-dialog" class="m-auto max-h-[92vh] w-[min(94vw,58rem)] overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-0 text-slate-800 shadow-2xl backdrop:bg-slate-900/60" aria-labelledby="booking-day-title">
+    <div class="sticky top-0 z-10 flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
+      <button type="button" onclick="closeBookingCalendarDay()" class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"><i data-lucide="arrow-left" class="h-4 w-4"></i>Voltar ao calendário</button>
+      <h2 id="booking-day-title" class="min-w-0 flex-1 truncate text-sm font-bold capitalize text-slate-900"></h2>
+    </div>
+    <div id="booking-day-details" class="space-y-3 p-4 sm:p-5"></div>
+  </dialog>
 </body>
 </html>
 
