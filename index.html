@@ -112,7 +112,7 @@
     }
     .sidebar-link[aria-current="page"] { background: #ecfdf5; color: #047857; font-weight: 700; }
     .sidebar-link:hover { background: #f0fdf4; color: #047857; }
-    .mobile-settings-link { display: none; }
+    .mobile-settings-link, .mobile-conflicts-link { display: none; }
     .sidebar-label-mobile { display: none; }
     #workshop-main-tabs .workshop-quick-register { flex: 1 0 100%; margin-left: 0; }
     #workshops-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
@@ -126,7 +126,7 @@
       #app-sidebar .sidebar-link svg { width: 18px; height: 18px; }
       #app-sidebar .sidebar-label-desktop { display: none; }
       #app-sidebar .sidebar-label-mobile { display: inline; }
-      #app-sidebar .mobile-settings-link { display: flex; }
+      #app-sidebar .mobile-settings-link, #app-sidebar .mobile-conflicts-link { display: flex; }
       #app-shell > header.app-topbar { position: sticky; top: 0; }
       #reminders-view, #workshops-view, #professor-view { width: 100%; padding-bottom: 88px; }
       #app-shell > footer { display: none; }
@@ -254,9 +254,10 @@
       <button id="sidebar-tab-workshops" type="button" onclick="switchAppTab('workshops')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="bot" class="h-4 w-4"></i><span class="sidebar-label-desktop">Oficinas de Robótica</span><span class="sidebar-label-mobile">Robótica</span></button>
       <button id="sidebar-tab-professor" type="button" onclick="switchAppTab('professor')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="map-pin" class="h-4 w-4"></i><span class="sidebar-label-desktop">Localizar Professor</span><span class="sidebar-label-mobile">Professores</span></button>
       <button id="sidebar-tab-settings-mobile" type="button" onclick="openSettingsModal()" class="sidebar-link mobile-settings-link items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="settings" class="h-4 w-4"></i><span>Ajustes</span></button>
+      <button id="sidebar-tab-conflicts-mobile" type="button" onclick="openDataConflictResolution()" class="sidebar-link mobile-conflicts-link items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="git-compare-arrows" class="h-4 w-4"></i><span>Conflitos</span><span id="sidebar-conflict-count-mobile" class="hidden rounded-full bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-700"></span></button>
     </nav>
     <p class="sidebar-section-label px-4 pb-2 pt-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Sistema</p>
-    <div class="sidebar-desktop-settings px-2"><button id="sidebar-settings-desktop" type="button" onclick="openSettingsModal()" class="sidebar-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="settings" class="h-4 w-4"></i><span>Configurações</span></button></div>
+    <div class="sidebar-desktop-settings space-y-1 px-2"><button id="sidebar-settings-desktop" type="button" onclick="openSettingsModal()" class="sidebar-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="settings" class="h-4 w-4"></i><span>Configurações</span></button><button id="sidebar-conflicts-desktop" type="button" onclick="openDataConflictResolution()" class="sidebar-link flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="git-compare-arrows" class="h-4 w-4"></i><span>Conflitos</span><span id="sidebar-conflict-count-desktop" class="hidden ml-auto rounded-full bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-700"></span></button></div>
     <div class="sidebar-bottom mt-auto border-t border-slate-100 p-3">
       <div class="mb-2 rounded-xl border border-slate-200 bg-slate-50 p-3"><div class="flex items-center justify-between text-xs"><span class="font-semibold text-slate-700">Monitoramento Ativo</span><span id="sidebar-clock" class="font-mono text-emerald-700"></span></div><p class="mt-2 text-[11px] leading-relaxed text-slate-500">Alertas de equipamentos e oficinas ligados.</p></div>
       <button type="button" onclick="signOut()" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-100"><i data-lucide="log-out" class="h-4 w-4"></i>Sair da Sessão</button>
@@ -1045,6 +1046,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     let expandedProfessorWeek = '';
     let currentUser = null;
     let cloudSyncReady = false;
+    let pendingDataConflict = null;
     let cloudSaveTimer = null;
     let cloudErrorShown = false;
     let offlineSyncPending = false;
@@ -1180,26 +1182,297 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       if (currentUser) localStorage.setItem(LOCAL_USER_KEY, currentUser.uid);
     }
 
-    function createAppDataSnapshot() {
+    function createAppDataSnapshot(overrides = {}) {
       return {
-        bookings,
-        settings,
-        workshopFollowupRecords: readLocalArray('robotica_feedback_records_v1'),
-        workshopClassTeachers: readLocalArray('robotica_class_teachers_v1'),
-        workshopCatalog: readLocalObject('robotica_workshop_catalog_v3')
+        bookings: overrides.bookings ?? bookings,
+        settings: overrides.settings ?? settings,
+        workshopFollowupRecords: overrides.workshopFollowupRecords ?? readLocalArray('robotica_feedback_records_v1'),
+        workshopClassTeachers: overrides.workshopClassTeachers ?? readLocalArray('robotica_class_teachers_v1'),
+        workshopCatalog: overrides.workshopCatalog ?? readLocalObject('robotica_workshop_catalog_v3')
       };
     }
 
-    function createCloudStateSnapshot() {
+    function createCloudStateSnapshot(overrides = {}) {
       return {
-        ...createAppDataSnapshot(),
+        ...createAppDataSnapshot(overrides),
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
     }
+    function readStoredAppDataSnapshot() {
+      return {
+        snapshot: {
+          bookings: readLocalArray(STORAGE_KEY),
+          settings: { ...createDefaultSettings(), ...readLocalObject(SETTINGS_KEY) },
+          workshopFollowupRecords: readLocalArray('robotica_feedback_records_v1'),
+          workshopClassTeachers: readLocalArray('robotica_class_teachers_v1'),
+          workshopCatalog: readLocalObject('robotica_workshop_catalog_v3')
+        },
+        available: {
+          bookings: localStorage.getItem(STORAGE_KEY) !== null,
+          settings: localStorage.getItem(SETTINGS_KEY) !== null,
+          workshopFollowupRecords: localStorage.getItem('robotica_feedback_records_v1') !== null,
+          workshopClassTeachers: localStorage.getItem('robotica_class_teachers_v1') !== null,
+          workshopCatalog: localStorage.getItem('robotica_workshop_catalog_v3') !== null
+        }
+      };
+    }
+
+    function conflictGroupDefinitions() {
+      return [
+        { key: 'bookings', source: 'bookings', label: 'Lembretes de equipamentos' },
+        { key: 'workshops', source: 'settings', label: 'Agendamentos de oficinas' },
+        { key: 'schoolDirectory', source: 'settings', label: 'Professores, turmas e equipamentos' },
+        { key: 'professorSchedule', source: 'settings', label: 'Horários dos professores' },
+        { key: 'preferences', source: 'settings', label: 'Preferências do aplicativo' },
+        { key: 'roboticsRecords', source: 'workshopFollowupRecords', label: 'Registros detalhados de Robótica' },
+        { key: 'roboticsClassTeachers', source: 'workshopClassTeachers', label: 'Turmas e professores da Robótica' },
+        { key: 'roboticsCatalog', source: 'workshopCatalog', label: 'Catálogo personalizado da Robótica' }
+      ];
+    }
+
+    function conflictGroupValue(snapshot, key) {
+      const data = snapshot || {};
+      const school = data.settings || {};
+      if (key === 'bookings') return data.bookings || [];
+      if (key === 'workshops') return school.workshops || [];
+      if (key === 'schoolDirectory') return { teachers: school.teachers || [], classes: school.classes || [], equipment: school.equipment || [] };
+      if (key === 'professorSchedule') return { professorNames: school.professorNames || [], professorSchedule: school.professorSchedule || [] };
+      if (key === 'preferences') {
+        const managed = new Set(['workshops', 'teachers', 'classes', 'equipment', 'professorNames', 'professorSchedule', 'notifiedEvents']);
+        return Object.fromEntries(Object.entries(school).filter(([name]) => !managed.has(name)));
+      }
+      if (key === 'roboticsRecords') return data.workshopFollowupRecords || [];
+      if (key === 'roboticsClassTeachers') return data.workshopClassTeachers || [];
+      return data.workshopCatalog || {};
+    }
+
+    function stableConflictSerialization(value) {
+      if (Array.isArray(value)) return `[${value.map(stableConflictSerialization).join(',')}]`;
+      if (value && typeof value === 'object') return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableConflictSerialization(value[key])}`).join(',')}}`;
+      return JSON.stringify(value);
+    }
+
+    function detectAppDataConflicts(localSnapshot, onlineSnapshot, localAvailable, onlineAvailable) {
+      return conflictGroupDefinitions().filter(group => {
+        if (!localAvailable[group.source] || !onlineAvailable[group.source]) return false;
+        return stableConflictSerialization(conflictGroupValue(localSnapshot, group.key)) !== stableConflictSerialization(conflictGroupValue(onlineSnapshot, group.key));
+      }).map(group => ({ ...group, choice: '' }));
+    }
+
+    function summarizeConflictData(key, value) {
+      const lines = [];
+      const list = (items, format) => {
+        const values = Array.isArray(items) ? items : [];
+        values.forEach((item, index) => lines.push(`${index + 1}. ${format(item)}`));
+        if (!values.length) lines.push('Nenhum item cadastrado.');
+      };
+      if (key === 'bookings') list(value, item => `${formatDateBR(item.date)} ${item.deliveryTime || ''} · ${item.teacher || 'Sem professor'} · ${item.className || 'Sem turma'} · ${(item.equipments || []).map(equipment => `${Number(equipment.qty) || 1}x ${equipment.name}`).join(', ')}`);
+      else if (key === 'workshops') list(value, item => `${formatDateBR(item.date)} ${item.startTime || ''} · ${item.grade || ''}º Ano · ${item.teacher || 'Sem professora'} · ${item.status || 'agendada'}`);
+      else if (key === 'schoolDirectory') {
+        lines.push(`Professores (${(value.teachers || []).length}): ${(value.teachers || []).join(', ') || 'nenhum'}`);
+        lines.push(`Turmas (${(value.classes || []).length}): ${(value.classes || []).join(', ') || 'nenhuma'}`);
+        lines.push(`Equipamentos (${(value.equipment || []).length}): ${(value.equipment || []).join(', ') || 'nenhum'}`);
+      } else if (key === 'professorSchedule') list(value.professorSchedule, item => `${PROFESSOR_SCHEDULE_DAYS[item.day] || 'Dia'} ${item.time} · ${item.teacher} · ${item.className}`);
+      else if (key === 'preferences') lines.push(`Som: ${value.soundEnabled === false ? 'desativado' : 'ativado'} · Avisos: ${Number(value.leadTimeMinutes) || 15} min antes · Campos adicionais: ${Object.keys(value).length}`);
+      else if (key === 'roboticsRecords') list(value, item => `${formatDateBR(item.date)} · ${item.className || 'Sem turma'} · Oficina ${item.workshopNum || '?'} · ${item.workshopTheme || 'Sem tema'} · ${item.teacher || 'Sem professor'}`);
+      else if (key === 'roboticsClassTeachers') list(value, item => `${item.className || 'Turma'} · ${item.teacher || 'Professor não definido'}`);
+      else {
+        const entries = Object.entries(value || {}).flatMap(([grade, themes]) => Object.entries(themes || {}).map(([number, theme]) => `${grade}, oficina ${number}: ${theme}`));
+        list(entries, item => item);
+      }
+      return lines.join('\n');
+    }
+
+    function updateDataConflictIndicator() {
+      const count = pendingDataConflict?.conflicts?.length || 0;
+      ['sidebar-conflict-count-desktop', 'sidebar-conflict-count-mobile'].forEach(id => {
+        const badge = document.getElementById(id);
+        if (!badge) return;
+        badge.textContent = String(count);
+        badge.classList.toggle('hidden', count === 0);
+      });
+    }
+
+    function renderDataConflictResolution() {
+      const list = document.getElementById('data-conflict-list');
+      const empty = document.getElementById('data-conflict-empty');
+      const close = document.getElementById('data-conflict-close');
+      const apply = document.getElementById('data-conflict-apply');
+      const status = document.getElementById('data-conflict-selection-status');
+      const conflicts = pendingDataConflict?.conflicts || [];
+      empty.classList.toggle('hidden', conflicts.length > 0);
+      list.classList.toggle('hidden', conflicts.length === 0);
+      close.classList.toggle('hidden', conflicts.length > 0);
+      apply.classList.toggle('hidden', conflicts.length === 0);
+      if (!conflicts.length) {
+        list.innerHTML = '';
+        status.textContent = 'Nenhuma escolha é necessária.';
+        return;
+      }
+      list.innerHTML = conflicts.map(conflict => {
+        const localSelected = conflict.choice === 'local';
+        const onlineSelected = conflict.choice === 'online';
+        const localStyle = localSelected ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-300' : 'border-slate-200 bg-white';
+        const onlineStyle = onlineSelected ? 'border-sky-500 bg-sky-50 ring-1 ring-sky-300' : 'border-slate-200 bg-white';
+        return `<article class="rounded-xl border border-slate-200 p-3 sm:p-4"><div class="mb-3 flex items-center justify-between gap-2"><h3 class="text-sm font-bold text-slate-800">${escapeHTML(conflict.label)}</h3><span class="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-700">Diferença encontrada</span></div><div class="grid gap-2 md:grid-cols-2"><section class="rounded-lg border p-3 ${localStyle}"><div class="mb-2 flex items-center justify-between gap-2"><h4 class="text-xs font-bold text-slate-800">Neste aparelho</h4><button type="button" aria-pressed="${localSelected}" onclick="selectDataConflictSource('${conflict.key}','local')" class="rounded-lg px-2.5 py-1.5 text-[10px] font-bold ${localSelected ? 'bg-emerald-700 text-white' : 'border border-emerald-300 bg-white text-emerald-800'}">${localSelected ? 'Selecionado' : 'Manter local'}</button></div><details><summary class="cursor-pointer text-[10px] font-semibold text-slate-500">Ver dados locais</summary><pre class="mt-2 max-h-36 overflow-auto whitespace-pre-wrap break-words rounded-md bg-white/80 p-2 text-[10px] leading-relaxed text-slate-600">${escapeHTML(summarizeConflictData(conflict.key, conflictGroupValue(pendingDataConflict.local, conflict.key)))}</pre></details></section><section class="rounded-lg border p-3 ${onlineStyle}"><div class="mb-2 flex items-center justify-between gap-2"><h4 class="text-xs font-bold text-slate-800">No Firebase</h4><button type="button" aria-pressed="${onlineSelected}" onclick="selectDataConflictSource('${conflict.key}','online')" class="rounded-lg px-2.5 py-1.5 text-[10px] font-bold ${onlineSelected ? 'bg-sky-700 text-white' : 'border border-sky-300 bg-white text-sky-800'}">${onlineSelected ? 'Selecionado' : 'Usar online'}</button></div><details><summary class="cursor-pointer text-[10px] font-semibold text-slate-500">Ver dados online</summary><pre class="mt-2 max-h-36 overflow-auto whitespace-pre-wrap break-words rounded-md bg-white/80 p-2 text-[10px] leading-relaxed text-slate-600">${escapeHTML(summarizeConflictData(conflict.key, conflictGroupValue(pendingDataConflict.online, conflict.key)))}</pre></details></section></div></article>`;
+      }).join('');
+      const selectedCount = conflicts.filter(conflict => conflict.choice).length;
+      status.textContent = `${selectedCount} de ${conflicts.length} conflitos selecionados.`;
+      apply.disabled = selectedCount !== conflicts.length;
+    }
+
+    async function openDataConflictResolution() {
+      const resumeQueuedSave = cloudSaveTimer !== null;
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = null;
+      if (!pendingDataConflict && firebaseDb && currentUser && navigator.onLine) {
+        try {
+          const localData = readStoredAppDataSnapshot();
+          const stateRef = firebaseDb.collection('users').doc(currentUser.uid).collection('app').doc('state');
+          const savedState = await stateRef.get();
+          if (savedState.exists) {
+            const data = savedState.data() || {};
+            const onlineAvailable = {
+              bookings: Array.isArray(data.bookings),
+              settings: Boolean(data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)),
+              workshopFollowupRecords: Array.isArray(data.workshopFollowupRecords),
+              workshopClassTeachers: Array.isArray(data.workshopClassTeachers),
+              workshopCatalog: Boolean(data.workshopCatalog && typeof data.workshopCatalog === 'object' && !Array.isArray(data.workshopCatalog))
+            };
+            const onlineSnapshot = {
+              bookings: onlineAvailable.bookings ? data.bookings : localData.snapshot.bookings,
+              settings: onlineAvailable.settings ? { ...createDefaultSettings(), ...data.settings } : localData.snapshot.settings,
+              workshopFollowupRecords: onlineAvailable.workshopFollowupRecords ? data.workshopFollowupRecords : localData.snapshot.workshopFollowupRecords,
+              workshopClassTeachers: onlineAvailable.workshopClassTeachers ? data.workshopClassTeachers : localData.snapshot.workshopClassTeachers,
+              workshopCatalog: onlineAvailable.workshopCatalog ? data.workshopCatalog : localData.snapshot.workshopCatalog
+            };
+            const conflicts = detectAppDataConflicts(localData.snapshot, onlineSnapshot, localData.available, onlineAvailable);
+            if (conflicts.length) {
+              pendingDataConflict = { local: cloneConflictValue(localData.snapshot), online: cloneConflictValue(onlineSnapshot), conflicts };
+              cloudSyncReady = false;
+              clearTimeout(cloudSaveTimer);
+              cloudSaveTimer = null;
+            }
+          }
+        } catch (error) {
+          console.error('Não foi possível atualizar a comparação dos dados:', error);
+          showToast('Não foi possível consultar os dados online agora.', 'warning');
+        }
+      }
+      if (resumeQueuedSave && !pendingDataConflict) queueCloudSave();
+      renderDataConflictResolution();
+      updateDataConflictIndicator();
+      const modal = document.getElementById('data-conflict-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeDataConflictResolution() {
+      if (pendingDataConflict?.conflicts?.length) return;
+      const modal = document.getElementById('data-conflict-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function selectDataConflictSource(key, source) {
+      if (!pendingDataConflict || !['local', 'online'].includes(source)) return;
+      const conflict = pendingDataConflict.conflicts.find(item => item.key === key);
+      if (!conflict) return;
+      conflict.choice = source;
+      renderDataConflictResolution();
+    }
+
+    function applyConflictGroup(snapshot, key, value) {
+      if (key === 'bookings') snapshot.bookings = cloneConflictValue(value);
+      else if (key === 'workshops') snapshot.settings.workshops = cloneConflictValue(value);
+      else if (key === 'schoolDirectory') Object.assign(snapshot.settings, cloneConflictValue(value));
+      else if (key === 'professorSchedule') Object.assign(snapshot.settings, cloneConflictValue(value));
+      else if (key === 'preferences') {
+        const managed = new Set(['workshops', 'teachers', 'classes', 'equipment', 'professorNames', 'professorSchedule', 'notifiedEvents']);
+        Object.keys(snapshot.settings).forEach(name => { if (!managed.has(name)) delete snapshot.settings[name]; });
+        Object.assign(snapshot.settings, cloneConflictValue(value));
+      } else if (key === 'roboticsRecords') snapshot.workshopFollowupRecords = cloneConflictValue(value);
+      else if (key === 'roboticsClassTeachers') snapshot.workshopClassTeachers = cloneConflictValue(value);
+      else if (key === 'roboticsCatalog') snapshot.workshopCatalog = cloneConflictValue(value);
+    }
+
+    async function confirmResolveDataConflicts() {
+      if (!pendingDataConflict) return;
+      const pending = pendingDataConflict;
+      if (pending.conflicts.some(conflict => !conflict.choice)) return;
+      if (!confirm('As escolhas serão aplicadas neste aparelho e no Firebase, substituindo a outra versão nos grupos selecionados. Deseja continuar?')) return;
+      const resolved = cloneConflictValue(pending.online);
+      pending.conflicts.forEach(conflict => {
+        const selectedSnapshot = conflict.choice === 'local' ? pending.local : pending.online;
+        applyConflictGroup(resolved, conflict.key, conflictGroupValue(selectedSnapshot, conflict.key));
+      });
+      const previousBookings = bookings;
+      const previousSettings = settings;
+      bookings = Array.isArray(resolved.bookings) ? resolved.bookings : [];
+      settings = { ...createDefaultSettings(), ...(resolved.settings || {}) };
+      ensureProfessorSchedule();
+      normalizeSchoolCatalogs();
+      normalizeRoboticsWorkshopTeachers();
+      resolved.settings = settings;
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = null;
+      let syncedOnline = false;
+      if (firebaseDb && currentUser && navigator.onLine) {
+        try {
+          await firebaseDb.collection('users').doc(currentUser.uid).collection('app').doc('state').set(createCloudStateSnapshot(resolved));
+          syncedOnline = true;
+        } catch (error) {
+          if (!isNetworkUnavailable(error)) {
+            bookings = previousBookings;
+            settings = previousSettings;
+            showToast('Não foi possível aplicar as escolhas no Firebase. Os conflitos continuam disponíveis.', 'error');
+            return;
+          }
+        }
+      }
+      localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(resolved.workshopFollowupRecords || []));
+      localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(resolved.workshopClassTeachers || []));
+      localStorage.setItem('robotica_workshop_catalog_v3', JSON.stringify(resolved.workshopCatalog || {}));
+      pendingDataConflict = null;
+      cloudSyncReady = Boolean(firebaseDb && currentUser);
+      persistLocalState();
+      updateDataConflictIndicator();
+      closeDataConflictResolution();
+      populateTeacherOptions();
+      populateClassOptions();
+      refreshProfessorLocatorOptions();
+      renderQuickEquipmentChips();
+      renderAll();
+      renderWorkshopPedagogicalProgress();
+      const roboticsFrame = document.getElementById('workshop-followup-frame');
+      const roboticsWindow = roboticsFrame?.contentWindow;
+      if (roboticsFrame?.dataset.loaded === 'true' && roboticsWindow && typeof roboticsWindow.loadFromStorage === 'function') {
+        roboticsWindow.loadFromStorage();
+        roboticsWindow.renderClassTeacherOptions();
+        roboticsWindow.renderClassTeacherList();
+        roboticsWindow.updateBadgeCount();
+        roboticsWindow.renderCatalogEditor();
+        roboticsWindow.renderReport();
+      }
+      if (syncedOnline) {
+        offlineSyncPending = false;
+        offlineSyncPendingUid = null;
+        showToast('Conflitos resolvidos e sincronizados.', 'success');
+      } else if (currentUser) {
+        offlineSyncPending = true;
+        offlineSyncPendingUid = currentUser.uid;
+        authenticatedOfflineMode = true;
+        showToast('Escolhas aplicadas neste aparelho. O Firebase será atualizado quando a conexão voltar.', 'warning');
+      } else {
+        showToast('Conflitos resolvidos nos dados locais.', 'success');
+      }
+    }
     function queueCloudSave() {
-      if (!firebaseDb || !currentUser || !cloudSyncReady) return;
+      if (!firebaseDb || !currentUser || !cloudSyncReady || pendingDataConflict) return;
       clearTimeout(cloudSaveTimer);
       cloudSaveTimer = setTimeout(async () => {
+        cloudSaveTimer = null;
         try {
           if (!currentUser || !cloudSyncReady) return;
           const snapshot = createCloudStateSnapshot();
@@ -1258,6 +1531,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     });
 
     function saveState() {
+      if (pendingDataConflict) {
+        openDataConflictResolution();
+        return;
+      }
       try {
         persistLocalState();
         if (currentUser && !navigator.onLine) {
@@ -3509,7 +3786,11 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
 
     function lockApplication() {
       cloudSyncReady = false;
+      pendingDataConflict = null;
+      updateDataConflictIndicator();
+      closeDataConflictResolution();
       clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = null;
       currentUser = null;
       localAdminMode = false;
       bookings = [];
@@ -3522,7 +3803,11 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
 
     function enterLocalAdminMode() {
       cloudSyncReady = false;
+      pendingDataConflict = null;
+      updateDataConflictIndicator();
+      closeDataConflictResolution();
       clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = null;
       currentUser = null;
       localAdminMode = true;
       bookings = [];
@@ -3550,8 +3835,59 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       return !navigator.onLine || ['unavailable', 'deadline-exceeded', 'network-request-failed', 'auth/network-request-failed'].includes(error?.code);
     }
 
+    async function checkCloudConflictsBeforeSync(user) {
+      if (!firebaseDb || !user || pendingDataConflict) return;
+      try {
+        const localData = readStoredAppDataSnapshot();
+        const stateRef = firebaseDb.collection('users').doc(user.uid).collection('app').doc('state');
+        const savedState = await stateRef.get();
+        if (!savedState.exists) {
+          queueCloudSave();
+          return;
+        }
+        const data = savedState.data() || {};
+        const onlineAvailable = {
+          bookings: Array.isArray(data.bookings),
+          settings: Boolean(data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)),
+          workshopFollowupRecords: Array.isArray(data.workshopFollowupRecords),
+          workshopClassTeachers: Array.isArray(data.workshopClassTeachers),
+          workshopCatalog: Boolean(data.workshopCatalog && typeof data.workshopCatalog === 'object' && !Array.isArray(data.workshopCatalog))
+        };
+        const onlineSnapshot = {
+          bookings: onlineAvailable.bookings ? data.bookings : localData.snapshot.bookings,
+          settings: onlineAvailable.settings ? { ...createDefaultSettings(), ...data.settings } : localData.snapshot.settings,
+          workshopFollowupRecords: onlineAvailable.workshopFollowupRecords ? data.workshopFollowupRecords : localData.snapshot.workshopFollowupRecords,
+          workshopClassTeachers: onlineAvailable.workshopClassTeachers ? data.workshopClassTeachers : localData.snapshot.workshopClassTeachers,
+          workshopCatalog: onlineAvailable.workshopCatalog ? data.workshopCatalog : localData.snapshot.workshopCatalog
+        };
+        const conflicts = detectAppDataConflicts(localData.snapshot, onlineSnapshot, localData.available, onlineAvailable);
+        if (conflicts.length) {
+          pendingDataConflict = { local: cloneConflictValue(localData.snapshot), online: cloneConflictValue(onlineSnapshot), conflicts };
+          cloudSyncReady = false;
+          updateDataConflictIndicator();
+          openDataConflictResolution();
+          return;
+        }
+        queueCloudSave();
+      } catch (error) {
+        console.error('Não foi possível comparar os dados antes da sincronização:', error);
+        showToast('Não foi possível comparar os dados com o Firebase. A sincronização aguardará uma nova tentativa.', 'warning');
+      }
+    }
+
     // Cada usuário tem um documento privado no Firestore, identificado pelo UID do Firebase.
     async function activateAuthenticatedUser(user) {
+      const storedLocal = readStoredAppDataSnapshot();
+      const localOwnerBeforeLogin = localStorage.getItem(LOCAL_USER_KEY);
+      const legacyEmailBeforeLogin = LEGACY_SUPABASE_ACCOUNT_EMAILS[localOwnerBeforeLogin];
+      const localCacheBelongsToUser = !localOwnerBeforeLogin || localOwnerBeforeLogin === user.uid || legacyEmailBeforeLogin === (user.email || '').toLowerCase();
+      const localSnapshot = localCacheBelongsToUser ? storedLocal.snapshot : {
+        bookings: [], settings: createDefaultSettings(), workshopFollowupRecords: [], workshopClassTeachers: [], workshopCatalog: {}
+      };
+      const localAvailable = localCacheBelongsToUser ? storedLocal.available : {
+        bookings: false, settings: false, workshopFollowupRecords: false, workshopClassTeachers: false, workshopCatalog: false
+      };
+      pendingDataConflict = null;
       currentUser = user;
       cloudSyncReady = false;
       cloudErrorShown = false;
@@ -3578,11 +3914,31 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
 
       if (savedState?.exists) {
         const data = savedState.data() || {};
-        bookings = Array.isArray(data.bookings) ? data.bookings : [];
-        settings = { ...createDefaultSettings(), ...(data.settings || {}) };
-        if (Array.isArray(data.workshopFollowupRecords)) localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(data.workshopFollowupRecords));
-        if (Array.isArray(data.workshopClassTeachers)) localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(data.workshopClassTeachers));
-        if (data.workshopCatalog && typeof data.workshopCatalog === 'object' && !Array.isArray(data.workshopCatalog)) localStorage.setItem('robotica_workshop_catalog_v3', JSON.stringify(data.workshopCatalog));
+        const onlineAvailable = {
+          bookings: Array.isArray(data.bookings),
+          settings: Boolean(data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)),
+          workshopFollowupRecords: Array.isArray(data.workshopFollowupRecords),
+          workshopClassTeachers: Array.isArray(data.workshopClassTeachers),
+          workshopCatalog: Boolean(data.workshopCatalog && typeof data.workshopCatalog === 'object' && !Array.isArray(data.workshopCatalog))
+        };
+        const onlineSnapshot = {
+          bookings: onlineAvailable.bookings ? data.bookings : cloneConflictValue(localSnapshot.bookings),
+          settings: onlineAvailable.settings ? { ...createDefaultSettings(), ...data.settings } : cloneConflictValue(localSnapshot.settings),
+          workshopFollowupRecords: onlineAvailable.workshopFollowupRecords ? data.workshopFollowupRecords : cloneConflictValue(localSnapshot.workshopFollowupRecords),
+          workshopClassTeachers: onlineAvailable.workshopClassTeachers ? data.workshopClassTeachers : cloneConflictValue(localSnapshot.workshopClassTeachers),
+          workshopCatalog: onlineAvailable.workshopCatalog ? data.workshopCatalog : cloneConflictValue(localSnapshot.workshopCatalog)
+        };
+        if (localCacheBelongsToUser) {
+          const conflicts = detectAppDataConflicts(localSnapshot, onlineSnapshot, localAvailable, onlineAvailable);
+          if (conflicts.length) pendingDataConflict = { local: cloneConflictValue(localSnapshot), online: cloneConflictValue(onlineSnapshot), conflicts };
+        }
+        bookings = onlineSnapshot.bookings;
+        settings = { ...createDefaultSettings(), ...onlineSnapshot.settings };
+        if (!pendingDataConflict) {
+          localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(onlineSnapshot.workshopFollowupRecords));
+          localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(onlineSnapshot.workshopClassTeachers));
+          localStorage.setItem('robotica_workshop_catalog_v3', JSON.stringify(onlineSnapshot.workshopCatalog));
+        }
         normalizeRoboticsWorkshopTeachers();
         stateNeedsMigration = !Array.isArray(data.settings?.professorSchedule) || !Array.isArray(data.settings?.professorNames)
           || !Array.isArray(data.workshopFollowupRecords) || !Array.isArray(data.workshopClassTeachers)
@@ -3598,6 +3954,9 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         } else {
           bookings = [];
           settings = createDefaultSettings();
+          localStorage.setItem('robotica_feedback_records_v1', '[]');
+          localStorage.setItem('robotica_class_teachers_v1', '[]');
+          localStorage.setItem('robotica_workshop_catalog_v3', '{}');
         }
         ensureProfessorSchedule();
         normalizeSchoolCatalogs();
@@ -3605,12 +3964,14 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       }
 
       ensureProfessorSchedule();
-      persistLocalState();
+      if (!pendingDataConflict) persistLocalState();
       cloudSyncReady = true;
-      if (stateNeedsMigration) queueCloudSave();
+      if (stateNeedsMigration && !pendingDataConflict) queueCloudSave();
       document.getElementById('signed-in-user').textContent = user.displayName || user.email || 'Usuário conectado';
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('app-shell').classList.remove('hidden');
+      updateDataConflictIndicator();
+      if (pendingDataConflict) setTimeout(openDataConflictResolution, 0);
       updateHeaderControls();
       populateTeacherOptions();
       populateClassOptions();
@@ -3675,6 +4036,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     async function initializeAuthentication() {
+      const loginButton = document.getElementById('login-submit');
+      loginButton.disabled = true;
       const configured = FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('COLE_')
         && FIREBASE_CONFIG.authDomain && !FIREBASE_CONFIG.authDomain.startsWith('COLE_')
         && FIREBASE_CONFIG.projectId && !FIREBASE_CONFIG.projectId.startsWith('COLE_')
@@ -3705,7 +4068,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       firebaseAuth.onAuthStateChanged(async (user) => {
         if (!user) {
           if (currentUser) lockApplication();
-          setLoginStatus('Informe o e-mail e a senha cadastrados no Firebase.');
+          setLoginStatus('Digite os dados da conta cadastrada no Firebase e clique em Entrar.');
           return;
         }
         try {
@@ -3726,7 +4089,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         const user = firebaseAuth?.currentUser;
         if (!user) return;
         cloudErrorShown = false;
-        if (offlineSyncPending && offlineSyncPendingUid === user.uid && cloudSyncReady) queueCloudSave();
+        if (offlineSyncPending && offlineSyncPendingUid === user.uid && cloudSyncReady) checkCloudConflictsBeforeSync(user);
         else if (!cloudSyncReady || authenticatedOfflineMode) {
           activateAuthenticatedUser(user).catch(error => {
             console.error('Não foi possível retomar a sincronização:', error);
@@ -3734,6 +4097,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           });
         }
       });
+      loginButton.disabled = false;
       lucide.createIcons();
     }
 
@@ -3780,8 +4144,19 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     </div>
     <div id="booking-day-details" class="space-y-3 p-4 sm:p-5"></div>
   </dialog>
+  <div id="data-conflict-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true" aria-labelledby="data-conflict-title">
+    <div class="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div class="border-b border-slate-200 px-5 py-4"><h2 id="data-conflict-title" class="text-base font-bold text-slate-900">Conflitos entre dados locais e online</h2><p class="mt-1 text-xs leading-relaxed text-slate-500">Confira as duas versões. Escolha qual manter em cada grupo; depois confirme para atualizar o aparelho e o Firebase.</p></div>
+      <div id="data-conflict-list" class="min-h-0 space-y-3 overflow-y-auto p-4 sm:p-5"></div>
+      <div id="data-conflict-empty" class="hidden p-8 text-center"><i data-lucide="circle-check" class="mx-auto h-9 w-9 text-emerald-600"></i><h3 class="mt-2 text-sm font-bold text-slate-800">Nenhum conflito encontrado</h3><p class="mt-1 text-xs text-slate-500">Os dados locais e online estão alinhados.</p></div>
+      <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-5"><p id="data-conflict-selection-status" class="text-xs text-slate-500"></p><div class="flex gap-2"><button id="data-conflict-close" type="button" onclick="closeDataConflictResolution()" class="hidden rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">Fechar</button><button id="data-conflict-apply" type="button" onclick="confirmResolveDataConflicts()" disabled class="rounded-lg bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">Confirmar escolhas</button></div></div>
+    </div>
+  </div>
 </body>
 </html>
+
+
+
 
 
 
