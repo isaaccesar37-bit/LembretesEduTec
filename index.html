@@ -1180,19 +1180,29 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       if (currentUser) localStorage.setItem(LOCAL_USER_KEY, currentUser.uid);
     }
 
+    function createAppDataSnapshot() {
+      return {
+        bookings,
+        settings,
+        workshopFollowupRecords: readLocalArray('robotica_feedback_records_v1'),
+        workshopClassTeachers: readLocalArray('robotica_class_teachers_v1'),
+        workshopCatalog: readLocalObject('robotica_workshop_catalog_v3')
+      };
+    }
+
+    function createCloudStateSnapshot() {
+      return {
+        ...createAppDataSnapshot(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+    }
     function queueCloudSave() {
       if (!firebaseDb || !currentUser || !cloudSyncReady) return;
       clearTimeout(cloudSaveTimer);
       cloudSaveTimer = setTimeout(async () => {
         try {
           if (!currentUser || !cloudSyncReady) return;
-          const snapshot = {
-            bookings,
-            settings,
-            workshopFollowupRecords: readLocalArray('robotica_feedback_records_v1'),
-            workshopClassTeachers: readLocalArray('robotica_class_teachers_v1'),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          };
+          const snapshot = createCloudStateSnapshot();
           await firebaseDb.collection('users').doc(currentUser.uid)
             .collection('app').doc('state').set(snapshot);
           if (offlineSyncPendingUid === currentUser.uid) {
@@ -1225,16 +1235,25 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       }
     }
 
+    function readLocalObject(key) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || '{}');
+        return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+      } catch (error) {
+        console.warn(`Não foi possível ler ${key}:`, error);
+        return {};
+      }
+    }
     // O formulário detalhado está em um iframe e grava diretamente no localStorage.
     // O evento storage permite encaminhar essas alterações para o Firestore.
     window.addEventListener('storage', event => {
-      if (event.storageArea === localStorage && ['robotica_feedback_records_v1', 'robotica_class_teachers_v1'].includes(event.key)) {
+      if (event.storageArea === localStorage && ['robotica_feedback_records_v1', 'robotica_class_teachers_v1', 'robotica_workshop_catalog_v3'].includes(event.key)) {
         if (currentUser && !navigator.onLine) {
           offlineSyncPending = true;
           offlineSyncPendingUid = currentUser.uid;
         }
         queueCloudSave();
-        renderWorkshopPedagogicalProgress();
+        if (event.key !== 'robotica_workshop_catalog_v3') renderWorkshopPedagogicalProgress();
       }
     });
 
@@ -3287,28 +3306,14 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       renderAll();
     }
 
-    function readLocalObject(key) {
-      try {
-        const value = JSON.parse(localStorage.getItem(key) || '{}');
-        return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-      } catch (error) {
-        console.warn(`Não foi possível ler ${key}:`, error);
-        return {};
-      }
-    }
+
 
     function exportJSON() {
       const backup = {
         app: 'LembretesEduTec',
         version: 2,
         exportedAt: new Date().toISOString(),
-        bookings,
-        settings,
-        robotics: {
-          followupRecords: readLocalArray('robotica_feedback_records_v1'),
-          classTeachers: readLocalArray('robotica_class_teachers_v1'),
-          catalog: readLocalObject('robotica_workshop_catalog_v3')
-        }
+        ...createAppDataSnapshot()
       };
       const dataStr = JSON.stringify(backup, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
@@ -3346,9 +3351,9 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
             schoolCatalogsResetV1: true
           };
           const robotics = parsed.robotics && typeof parsed.robotics === 'object' ? parsed.robotics : {};
-          const followupRecords = robotics.followupRecords ?? parsed.workshopFollowupRecords;
-          const classTeachers = robotics.classTeachers ?? parsed.workshopClassTeachers;
-          const workshopCatalog = robotics.catalog ?? parsed.workshopCatalog;
+          const followupRecords = parsed.workshopFollowupRecords ?? robotics.followupRecords;
+          const classTeachers = parsed.workshopClassTeachers ?? robotics.classTeachers;
+          const workshopCatalog = parsed.workshopCatalog ?? robotics.catalog;
           if (Array.isArray(followupRecords)) localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(followupRecords));
           if (Array.isArray(classTeachers)) localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(classTeachers));
           if (workshopCatalog && typeof workshopCatalog === 'object' && !Array.isArray(workshopCatalog)) {
@@ -3569,7 +3574,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         offlineMode = true;
         authenticatedOfflineMode = true;
       }
-      let scheduleNeedsMigration = false;
+      let stateNeedsMigration = false;
 
       if (savedState?.exists) {
         const data = savedState.data() || {};
@@ -3577,9 +3582,11 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         settings = { ...createDefaultSettings(), ...(data.settings || {}) };
         if (Array.isArray(data.workshopFollowupRecords)) localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(data.workshopFollowupRecords));
         if (Array.isArray(data.workshopClassTeachers)) localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(data.workshopClassTeachers));
+        if (data.workshopCatalog && typeof data.workshopCatalog === 'object' && !Array.isArray(data.workshopCatalog)) localStorage.setItem('robotica_workshop_catalog_v3', JSON.stringify(data.workshopCatalog));
         normalizeRoboticsWorkshopTeachers();
-        scheduleNeedsMigration = !Array.isArray(data.settings?.professorSchedule) || !Array.isArray(data.settings?.professorNames)
-          || !Array.isArray(data.workshopFollowupRecords) || !Array.isArray(data.workshopClassTeachers);
+        stateNeedsMigration = !Array.isArray(data.settings?.professorSchedule) || !Array.isArray(data.settings?.professorNames)
+          || !Array.isArray(data.workshopFollowupRecords) || !Array.isArray(data.workshopClassTeachers)
+          || !data.workshopCatalog || typeof data.workshopCatalog !== 'object' || Array.isArray(data.workshopCatalog);
       } else if (!offlineMode) {
         const localOwner = localStorage.getItem(LOCAL_USER_KEY);
         const legacyEmail = LEGACY_SUPABASE_ACCOUNT_EMAILS[localOwner];
@@ -3594,19 +3601,13 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         }
         ensureProfessorSchedule();
         normalizeSchoolCatalogs();
-        await stateRef.set({
-          bookings,
-          settings,
-          workshopFollowupRecords: readLocalArray('robotica_feedback_records_v1'),
-          workshopClassTeachers: readLocalArray('robotica_class_teachers_v1'),
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        await stateRef.set(createCloudStateSnapshot());
       }
 
       ensureProfessorSchedule();
       persistLocalState();
       cloudSyncReady = true;
-      if (scheduleNeedsMigration) queueCloudSave();
+      if (stateNeedsMigration) queueCloudSave();
       document.getElementById('signed-in-user').textContent = user.displayName || user.email || 'Usuário conectado';
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('app-shell').classList.remove('hidden');
@@ -3781,6 +3782,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
   </dialog>
 </body>
 </html>
+
+
+
+
 
 
 
