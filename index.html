@@ -1198,6 +1198,13 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       };
     }
+
+    function cloneConflictValue(value) {
+      if (value === undefined) return undefined;
+      if (typeof structuredClone === 'function') return structuredClone(value);
+      return JSON.parse(JSON.stringify(value));
+    }
+
     function readStoredAppDataSnapshot() {
       return {
         snapshot: {
@@ -4059,11 +4066,9 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         return;
       }
 
-      try {
-        await firebaseDb.enablePersistence({ synchronizeTabs: true });
-      } catch (persistenceError) {
+      const firestorePersistenceReady = firebaseDb.enablePersistence({ synchronizeTabs: true }).catch(persistenceError => {
         console.warn('O cache persistente do Firestore não pôde ser ativado neste navegador:', persistenceError);
-      }
+      });
 
       firebaseAuth.onAuthStateChanged(async (user) => {
         if (!user) {
