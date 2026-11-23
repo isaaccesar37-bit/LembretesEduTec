@@ -841,16 +841,16 @@
 
         <!-- Backup e Restauração -->
         <div class="space-y-2.5 pt-2 border-t border-slate-200">
-          <p class="text-xs font-bold text-slate-700 uppercase tracking-wider">Backup de Dados (JSON)</p>
+          <p class="text-xs font-bold text-slate-700 uppercase tracking-wider">Backup de Dados</p>
           <div class="grid grid-cols-2 gap-2.5">
             <button type="button" onclick="exportJSON()"
               class="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl transition">
               <i data-lucide="download" class="w-4 h-4"></i>
-              Exportar JSON
+              Exportar backup
             </button>
             <label class="flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl transition cursor-pointer">
               <i data-lucide="upload" class="w-4 h-4"></i>
-              Importar JSON
+              Importar backup
               <input type="file" accept=".json" onchange="importJSON(event)" class="hidden" />
             </label>
           </div>
@@ -1722,7 +1722,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       }).join('') + '</div>';
     }
     function renderProfessorDirectoryCard(name, day, time, currentEntries, isSelected) {
-      const scheduleEntries = currentEntries.filter(entry => entry.teacher === name);
+      const scheduleEntries = currentEntries.filter(entry => sameProfessorName(entry.teacher, name));
       const today = getTodayISO();
       const todayBookings = bookings.filter(item => sameProfessorName(item.teacher, name) && item.date === today && item.status !== 'completed');
       const activeBooking = todayBookings.find(item => item.status === 'in_use');
@@ -1731,7 +1731,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       const isScheduledNow = scheduleEntries.length && professorLocatorFollowsCurrent && day === new Date().getDay() && !professorScheduleIsWeekend;
       const status = activeBooking || isScheduledNow ? 'Em Atividade' : pendingBooking || todayWorkshop ? 'Agendado Hoje' : 'Sala dos Professores / Livre';
       const statusClass = status === 'Em Atividade' ? 'bg-emerald-100 text-emerald-800' : status === 'Agendado Hoje' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700';
-      const location = activeBooking?.className || pendingBooking?.className || todayWorkshop?.className || scheduleEntries.map(entry => entry.className).join(' · ') || 'Localização padrão / Sala dos Professores';
+      const location = scheduleEntries.map(entry => entry.className).join(' · ') || 'Sala dos Professores / Livre';
       const equipmentText = item => (item.equipments || []).map(equipment => `${Number(equipment.qty) || 1}x ${equipment.name}`).join(', ');
       let activity = 'Sem equipamento ativo no momento';
       if (activeBooking) activity = `Com ${equipmentText(activeBooking) || 'equipamento'} até ${activeBooking.pickupTime || 'a devolução'}`;
@@ -3287,16 +3287,38 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       renderAll();
     }
 
+    function readLocalObject(key) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || '{}');
+        return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+      } catch (error) {
+        console.warn(`Não foi possível ler ${key}:`, error);
+        return {};
+      }
+    }
+
     function exportJSON() {
-      const dataStr = JSON.stringify({ exportedAt: new Date().toISOString(), bookings, settings }, null, 2);
+      const backup = {
+        app: 'LembretesEduTec',
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        bookings,
+        settings,
+        robotics: {
+          followupRecords: readLocalArray('robotica_feedback_records_v1'),
+          classTeachers: readLocalArray('robotica_class_teachers_v1'),
+          catalog: readLocalObject('robotica_workshop_catalog_v3')
+        }
+      };
+      const dataStr = JSON.stringify(backup, null, 2);
       const blob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `edulogistica_backup_${getTodayISO()}.json`;
+      a.download = `lembretesedutec_backup_${getTodayISO()}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('Arquivo de backup JSON baixado!', 'success');
+      showToast('Backup completo exportado.', 'success');
     }
 
     function importJSON(event) {
@@ -3323,23 +3345,42 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
             ...importedSettings,
             schoolCatalogsResetV1: true
           };
-      ensureProfessorSchedule();
-      normalizeSchoolCatalogs();
+          const robotics = parsed.robotics && typeof parsed.robotics === 'object' ? parsed.robotics : {};
+          const followupRecords = robotics.followupRecords ?? parsed.workshopFollowupRecords;
+          const classTeachers = robotics.classTeachers ?? parsed.workshopClassTeachers;
+          const workshopCatalog = robotics.catalog ?? parsed.workshopCatalog;
+          if (Array.isArray(followupRecords)) localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(followupRecords));
+          if (Array.isArray(classTeachers)) localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(classTeachers));
+          if (workshopCatalog && typeof workshopCatalog === 'object' && !Array.isArray(workshopCatalog)) {
+            localStorage.setItem('robotica_workshop_catalog_v3', JSON.stringify(workshopCatalog));
+          }
+          ensureProfessorSchedule();
+          normalizeSchoolCatalogs();
           saveState();
           populateTeacherOptions();
           populateClassOptions();
           renderQuickEquipmentChips();
           renderAll();
+          const roboticsFrame = document.getElementById('workshop-followup-frame');
+          const roboticsWindow = roboticsFrame?.contentWindow;
+          if (roboticsFrame?.dataset.loaded === 'true' && roboticsWindow && typeof roboticsWindow.loadFromStorage === 'function') {
+            roboticsWindow.loadFromStorage();
+            roboticsWindow.renderClassTeacherOptions();
+            roboticsWindow.renderClassTeacherList();
+            roboticsWindow.updateBadgeCount();
+            roboticsWindow.renderCatalogEditor();
+            roboticsWindow.renderReport();
+          }
+          const roboticsRecordCount = readLocalArray('robotica_feedback_records_v1').length;
           closeSettingsModal();
-          showToast(`${bookings.length} agendamento(s) importado(s) com sucesso!`, 'success');
+          showToast(`Backup importado: ${bookings.length} lembrete(s) e ${roboticsRecordCount} registro(s) da Robótica.`, 'success');
         } catch (err) {
-          showToast('Arquivo JSON inválido. Verifique o arquivo selecionado.', 'error');
+          showToast('Arquivo de backup inválido. Verifique o arquivo selecionado.', 'error');
         }
       };
       reader.readAsText(file);
       event.target.value = '';
     }
-
     function confirmClearAllData() {
       openConfirmModal(
         'Apagar todos os dados?',
@@ -3740,6 +3781,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
   </dialog>
 </body>
 </html>
+
+
 
 
 
