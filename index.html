@@ -1032,6 +1032,9 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     let cloudSyncReady = false;
     let cloudSaveTimer = null;
     let cloudErrorShown = false;
+    let offlineSyncPending = false;
+    let offlineSyncPendingUid = null;
+    let authenticatedOfflineMode = false;
     let monitorIntervalStarted = false;
     let localAdminMode = false;
 
@@ -1177,8 +1180,18 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           };
           await firebaseDb.collection('users').doc(currentUser.uid)
             .collection('app').doc('state').set(snapshot);
+          if (offlineSyncPendingUid === currentUser.uid) {
+            offlineSyncPending = false;
+            offlineSyncPendingUid = null;
+          }
+          authenticatedOfflineMode = false;
         } catch (error) {
           console.error('Erro ao sincronizar dados com Firebase:', error);
+          if (isNetworkUnavailable(error) && currentUser) {
+            offlineSyncPending = true;
+            offlineSyncPendingUid = currentUser.uid;
+            authenticatedOfflineMode = true;
+          }
           if (!cloudErrorShown) {
             showToast('Não foi possível sincronizar com o banco de dados. Os dados permanecem salvos neste aparelho.', 'error');
             cloudErrorShown = true;
@@ -1201,6 +1214,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     // O evento storage permite encaminhar essas alterações para o Firestore.
     window.addEventListener('storage', event => {
       if (event.storageArea === localStorage && ['robotica_feedback_records_v1', 'robotica_class_teachers_v1'].includes(event.key)) {
+        if (currentUser && !navigator.onLine) {
+          offlineSyncPending = true;
+          offlineSyncPendingUid = currentUser.uid;
+        }
         queueCloudSave();
         renderWorkshopPedagogicalProgress();
       }
@@ -1209,6 +1226,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     function saveState() {
       try {
         persistLocalState();
+        if (currentUser && !navigator.onLine) {
+          offlineSyncPending = true;
+          offlineSyncPendingUid = currentUser.uid;
+        }
         queueCloudSave();
       } catch (e) {
         showToast('Erro ao salvar no navegador. Verifique o espaço disponível.', 'error');
@@ -3350,6 +3371,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       }
     }
 
+    function isNetworkUnavailable(error) {
+      return !navigator.onLine || ['unavailable', 'deadline-exceeded', 'network-request-failed', 'auth/network-request-failed'].includes(error?.code);
+    }
+
     // Cada usuário tem um documento privado no Firestore, identificado pelo UID do Firebase.
     async function activateAuthenticatedUser(user) {
       currentUser = user;
@@ -3357,10 +3382,26 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       cloudErrorShown = false;
       setLoginStatus('Carregando seus dados…');
       const stateRef = firebaseDb.collection('users').doc(user.uid).collection('app').doc('state');
-      const savedState = await stateRef.get();
+      let savedState = null;
+      let offlineMode = false;
+      try {
+        savedState = await stateRef.get();
+        offlineMode = !navigator.onLine;
+        if (offlineMode) authenticatedOfflineMode = true;
+      } catch (error) {
+        const localOwner = localStorage.getItem(LOCAL_USER_KEY);
+        if (!isNetworkUnavailable(error) || localOwner !== user.uid) throw error;
+        bookings = [];
+        settings = createDefaultSettings();
+        loadState();
+        ensureProfessorSchedule();
+        normalizeSchoolCatalogs();
+        offlineMode = true;
+        authenticatedOfflineMode = true;
+      }
       let scheduleNeedsMigration = false;
 
-      if (savedState.exists) {
+      if (savedState?.exists) {
         const data = savedState.data() || {};
         bookings = Array.isArray(data.bookings) ? data.bookings : [];
         settings = { ...createDefaultSettings(), ...(data.settings || {}) };
@@ -3369,7 +3410,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         normalizeRoboticsWorkshopTeachers();
         scheduleNeedsMigration = !Array.isArray(data.settings?.professorSchedule) || !Array.isArray(data.settings?.professorNames)
           || !Array.isArray(data.workshopFollowupRecords) || !Array.isArray(data.workshopClassTeachers);
-      } else {
+      } else if (!offlineMode) {
         const localOwner = localStorage.getItem(LOCAL_USER_KEY);
         const legacyEmail = LEGACY_SUPABASE_ACCOUNT_EMAILS[localOwner];
         const canImportLocalCache = !localOwner || localOwner === user.uid || legacyEmail === (user.email || '').toLowerCase();
@@ -3405,7 +3446,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       refreshProfessorLocatorOptions();
       renderQuickEquipmentChips();
       updateClockAndMonitor();
-      setLoginStatus('Acesso realizado.', 'success');
+      setLoginStatus(offlineMode ? 'Acesso offline. Os dados deste aparelho estarão disponíveis até a conexão voltar.' : 'Acesso realizado.', offlineMode ? 'warning' : 'success');
+      if (offlineMode) showToast('Modo offline: alterações ficam neste aparelho e serão sincronizadas quando a conexão voltar.', 'warning');
 
       if (!monitorIntervalStarted) {
         monitorIntervalStarted = true;
@@ -3435,7 +3477,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           'auth/user-not-found': 'Não existe uma conta do Firebase com esse e-mail.',
           'auth/wrong-password': 'E-mail ou senha incorretos.',
           'auth/too-many-requests': 'Muitas tentativas. Aguarde um pouco e tente novamente.',
-          'auth/operation-not-allowed': 'Ative o acesso por e-mail e senha nas configurações de Authentication do Firebase.'
+          'auth/operation-not-allowed': 'Ative o acesso por e-mail e senha nas configurações de Authentication do Firebase.',
+          'auth/network-request-failed': 'Sem conexão. A conta precisa ter sido autenticada online antes neste aparelho para abrir os dados offline.'
         };
         setLoginStatus(messages[error.code] || error.message || 'Não foi possível entrar. Confira o e-mail e a senha.', 'error');
       } finally {
@@ -3482,6 +3525,12 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         return;
       }
 
+      try {
+        await firebaseDb.enablePersistence({ synchronizeTabs: true });
+      } catch (persistenceError) {
+        console.warn('O cache persistente do Firestore não pôde ser ativado neste navegador:', persistenceError);
+      }
+
       firebaseAuth.onAuthStateChanged(async (user) => {
         if (!user) {
           if (currentUser) lockApplication();
@@ -3492,8 +3541,26 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           await activateAuthenticatedUser(user);
         } catch (authError) {
           console.error('Erro ao abrir os dados do usuário no Firebase:', authError);
+          if (isNetworkUnavailable(authError)) {
+            setLoginStatus(localStorage.getItem(LOCAL_USER_KEY) === user.uid
+              ? 'Sem conexão. Os dados offline estarão disponíveis se esta conta já foi usada neste aparelho.'
+              : 'Conecte-se à internet e abra esta conta neste aparelho pelo menos uma vez.', 'warning');
+            return;
+          }
           setLoginStatus(authError.message || 'Não foi possível acessar seus dados no Firebase.', 'error');
           await firebaseAuth.signOut();
+        }
+      });
+      window.addEventListener('online', () => {
+        const user = firebaseAuth?.currentUser;
+        if (!user) return;
+        cloudErrorShown = false;
+        if (offlineSyncPending && offlineSyncPendingUid === user.uid && cloudSyncReady) queueCloudSave();
+        else if (!cloudSyncReady || authenticatedOfflineMode) {
+          activateAuthenticatedUser(user).catch(error => {
+            console.error('Não foi possível retomar a sincronização:', error);
+            setLoginStatus('A conexão voltou, mas a sincronização ainda não foi concluída.', 'warning');
+          });
         }
       });
       lucide.createIcons();
