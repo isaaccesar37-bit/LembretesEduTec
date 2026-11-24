@@ -131,8 +131,7 @@
       #task-reminders-view, #reminders-view, #workshops-view, #professor-view { width: 100%; padding-bottom: 88px; }
       #app-shell > footer { display: none; }
       #settings-modal, #booking-modal, #confirm-modal { z-index: 80; }
-      #settings-modal { z-index: 50; bottom: calc(62px + env(safe-area-inset-bottom)); }
-      #settings-modal > div { max-height: 100%; }
+      #settings-modal { z-index: 110; }
       #toast-container { bottom: calc(70px + env(safe-area-inset-bottom)); left: .75rem; right: .75rem; width: auto; max-width: none; }
     }
     @media (max-width: 640px) {
@@ -170,8 +169,8 @@
       #workshop-main-tabs .workshop-quick-register { flex-basis: 100%; margin-left: 0; }
       #workshop-main-tabs [role="tab"] { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; justify-content: center; padding: .5rem .45rem; font-size: .68rem; line-height: 1.2; }
       #workshop-main-tabs [role="tab"] i { flex: 0 0 auto; }
-      #settings-modal { padding: 0; }
-      #settings-modal > div { width: 100%; max-width: none; height: 100%; max-height: 100%; border-radius: 0; }
+      #settings-modal { padding: .75rem; }
+      #settings-modal > div { width: 100%; max-width: 56rem; height: auto; max-height: 94vh; border-radius: 1rem; }
       #settings-modal input, #settings-modal select, #settings-modal button { min-width: 0; max-width: 100%; }
       #workshops-list { grid-template-columns: 1fr; }
     }
@@ -753,16 +752,13 @@
   <!-- ===================================================================== -->
   <!-- MODAL: CONFIGURAÇÕES, LEMBRETES E BACKUP JSON                         -->
   <!-- ===================================================================== -->
-  <div id="settings-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200">
+  <div id="settings-modal" onclick="closeSettingsOnBackdrop(event)" class="fixed inset-0 z-[110] hidden items-center justify-center bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
       <div class="bg-brand-900 text-white px-5 py-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <i data-lucide="sliders-horizontal" class="w-5 h-5 text-emerald-300"></i>
-          <h3 class="text-base font-bold">Configurações & Backup</h3>
+          <h3 id="settings-modal-title" class="text-base font-bold">Configurações & Backup</h3>
         </div>
-        <button onclick="closeSettingsModal()" class="p-1.5 rounded-lg hover:bg-white/10 transition text-emerald-200 hover:text-white">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
       </div>
 
       <div class="border-b border-slate-200 bg-white px-3 py-2">
@@ -774,7 +770,7 @@
           <button id="settings-tab-other" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-other" onclick="switchSettingsTab('other')" class="settings-tab rounded-lg px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-emerald-50">Outros comandos</button>
         </div>
       </div>
-      <div class="p-5">
+      <div class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
         <section id="settings-panel-school" role="tabpanel" aria-labelledby="settings-tab-school" class="settings-panel space-y-3 pt-1">
         <div class="space-y-3 pt-1">
           <div>
@@ -902,12 +898,11 @@
             <i data-lucide="trash-2" class="w-4 h-4"></i>
             Apagar todos os registros
           </button>
-          <button type="button" onclick="closeSettingsModal()"
-            class="px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-xl hover:bg-slate-700 transition">
-            Fechar
-          </button>
         </div>
         </section>
+      </div>
+      <div class="flex justify-end border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-5">
+        <button type="button" onclick="closeSettingsModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">Fechar</button>
       </div>
     </div>
   </div>
@@ -1548,6 +1543,13 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
 
     function closeDataConflictResolution() {
       if (pendingDataConflict?.conflicts?.length) return;
+      const modal = document.getElementById('data-conflict-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function closeDataConflictOnBackdrop(event) {
+      if (event.target !== event.currentTarget) return;
       const modal = document.getElementById('data-conflict-modal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
@@ -3794,6 +3796,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       lucide.createIcons();
     }
 
+    function closeSettingsOnBackdrop(event) {
+      if (event.target === event.currentTarget) closeSettingsModal();
+    }
+
     let roboticsSettingsActiveView = 'catalog';
 
     function configureRoboticsSettingsFrame(settingsMode) {
@@ -4477,7 +4483,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     </div>
     <div id="booking-day-details" class="space-y-3 p-4 sm:p-5"></div>
   </dialog>
-  <div id="data-conflict-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true" aria-labelledby="data-conflict-title">
+  <div id="data-conflict-modal" onclick="closeDataConflictOnBackdrop(event)" class="fixed inset-0 z-[110] hidden items-center justify-center bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true" aria-labelledby="data-conflict-title">
     <div class="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
       <div class="border-b border-slate-200 px-5 py-4"><h2 id="data-conflict-title" class="text-base font-bold text-slate-900">Conflitos entre dados locais e online</h2><p class="mt-1 text-xs leading-relaxed text-slate-500">Confira as duas versões. Escolha qual manter em cada grupo; depois confirme para atualizar o aparelho e o Firebase.</p><div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold"><span class="text-emerald-700"><span class="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-emerald-200"></span>Verde: informação em comum</span><span class="text-rose-700"><span class="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-rose-200"></span>Vermelho: informação diferente</span></div></div>
       <div id="data-conflict-list" class="min-h-0 space-y-3 overflow-y-auto p-4 sm:p-5"></div>
