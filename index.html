@@ -252,8 +252,8 @@
     </div>
     <p class="sidebar-section-label px-4 pb-2 pt-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Módulos</p>
     <nav class="sidebar-nav flex flex-col gap-1 px-2" aria-label="Módulos do app">
-      <button id="sidebar-tab-tasks" type="button" onclick="switchAppTab('tasks')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="clipboard-list" class="h-4 w-4"></i><span>Lembretes</span></button>
-      <button id="sidebar-tab-reminders" type="button" onclick="switchAppTab('reminders')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700" aria-current="page"><i data-lucide="laptop" class="h-4 w-4"></i><span>Equipamentos</span></button>
+      <button id="sidebar-tab-tasks" type="button" onclick="switchAppTab('tasks')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700" aria-current="page"><i data-lucide="clipboard-list" class="h-4 w-4"></i><span>Lembretes</span></button>
+      <button id="sidebar-tab-reminders" type="button" onclick="switchAppTab('reminders')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="laptop" class="h-4 w-4"></i><span>Equipamentos</span></button>
       <button id="sidebar-tab-workshops" type="button" onclick="switchAppTab('workshops')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="bot" class="h-4 w-4"></i><span class="sidebar-label-desktop">Oficinas de Robótica</span><span class="sidebar-label-mobile">Robótica</span></button>
       <button id="sidebar-tab-professor" type="button" onclick="switchAppTab('professor')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="map-pin" class="h-4 w-4"></i><span class="sidebar-label-desktop">Localizar Professor</span><span class="sidebar-label-mobile">Professores</span></button>
       <button id="sidebar-tab-settings-mobile" type="button" onclick="openSettingsModal()" class="sidebar-link mobile-settings-link items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="settings" class="h-4 w-4"></i><span>Ajustes</span></button>
@@ -291,7 +291,7 @@
         <div class="topbar-brand flex items-center gap-3">
           <img src="icons/icon-192.png" alt="" class="topbar-mobile-mark hidden h-10 w-10 shrink-0 object-contain" />
           <div>
-            <h1 id="app-page-title" class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Agendamento de Equipamentos</h1>
+            <h1 id="app-page-title" class="text-lg sm:text-xl font-bold tracking-tight leading-tight">Lembretes e Entregas</h1>
             <p class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
               <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i>
               <span id="live-clock">Carregando relógio...</span>
@@ -334,15 +334,15 @@
 
   <nav class="bg-white border-b border-slate-200 shadow-sm" aria-label="Seções principais">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-2 py-2">
-      <button id="tab-tasks" type="button" onclick="switchAppTab('tasks')" aria-selected="false" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="clipboard-list" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Lembretes</button>
-      <button id="tab-reminders" type="button" onclick="switchAppTab('reminders')" aria-selected="true" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-emerald-600 text-white transition"><i data-lucide="package" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Lembretes Equipamentos</button>
+      <button id="tab-tasks" type="button" onclick="switchAppTab('tasks')" aria-selected="true" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-emerald-600 text-white transition"><i data-lucide="clipboard-list" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Lembretes</button>
+      <button id="tab-reminders" type="button" onclick="switchAppTab('reminders')" aria-selected="false" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="package" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Lembretes Equipamentos</button>
       <button id="tab-workshops" type="button" onclick="switchAppTab('workshops')" aria-selected="false" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="bot" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Oficinas de Robótica</button>
       <button id="tab-professor" type="button" onclick="switchAppTab('professor')" aria-selected="false" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="map-pin" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Professor</button>
     </div>
   </nav>
 
   <!-- Conteúdo Principal -->
-  <main id="task-reminders-view" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6" aria-labelledby="task-reminders-heading">
+  <main id="task-reminders-view" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6" aria-labelledby="task-reminders-heading">
     <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div><h2 id="task-reminders-heading" class="text-xl font-bold text-slate-900">Lembretes e Entregas</h2><p class="mt-1 text-sm text-slate-500">Organize demandas, prazos, solicitantes e observações.</p></div>
@@ -367,7 +367,7 @@
     </section>
   </main>
 
-  <main id="reminders-view" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <main id="reminders-view" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <!-- Cards de Resumo Rápido (KPIs) -->
     <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4" aria-label="Resumo do dia">
@@ -1077,6 +1077,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     let expandedProfessorWeek = '';
     let currentUser = null;
     let cloudSyncReady = false;
+    let cloudStateUnsubscribe = null;
+    let lastCloudSnapshot = null;
     let pendingDataConflict = null;
     let cloudSaveTimer = null;
     let cloudErrorShown = false;
@@ -1304,6 +1306,110 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       }).map(group => ({ ...group, choice: '' }));
     }
 
+    function completeConflictAvailability() {
+      return { bookings: true, taskReminders: true, settings: true, workshopFollowupRecords: true, workshopClassTeachers: true, workshopCatalog: true };
+    }
+
+    function detachCloudStateListener() {
+      if (typeof cloudStateUnsubscribe === 'function') cloudStateUnsubscribe();
+      cloudStateUnsubscribe = null;
+    }
+
+    function cloudSnapshotFromData(data, fallback = {}) {
+      return {
+        bookings: Array.isArray(data.bookings) ? data.bookings : cloneConflictValue(fallback.bookings || []),
+        taskReminders: Array.isArray(data.taskReminders) ? data.taskReminders : cloneConflictValue(fallback.taskReminders || []),
+        settings: data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)
+          ? { ...createDefaultSettings(), ...data.settings }
+          : cloneConflictValue(fallback.settings || createDefaultSettings()),
+        workshopFollowupRecords: Array.isArray(data.workshopFollowupRecords) ? data.workshopFollowupRecords : cloneConflictValue(fallback.workshopFollowupRecords || []),
+        workshopClassTeachers: Array.isArray(data.workshopClassTeachers) ? data.workshopClassTeachers : cloneConflictValue(fallback.workshopClassTeachers || []),
+        workshopCatalog: data.workshopCatalog && typeof data.workshopCatalog === 'object' && !Array.isArray(data.workshopCatalog)
+          ? data.workshopCatalog
+          : cloneConflictValue(fallback.workshopCatalog || {})
+      };
+    }
+
+    function applyCloudSnapshotLocally(snapshot) {
+      bookings = Array.isArray(snapshot.bookings) ? cloneConflictValue(snapshot.bookings) : [];
+      taskReminders = Array.isArray(snapshot.taskReminders) ? cloneConflictValue(snapshot.taskReminders) : [];
+      settings = { ...createDefaultSettings(), ...(snapshot.settings || {}) };
+      ensureProfessorSchedule();
+      normalizeSchoolCatalogs();
+      normalizeRoboticsWorkshopTeachers();
+      localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(snapshot.workshopFollowupRecords || []));
+      localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(snapshot.workshopClassTeachers || []));
+      localStorage.setItem('robotica_workshop_catalog_v3', JSON.stringify(snapshot.workshopCatalog || {}));
+      persistLocalState();
+      populateTeacherOptions();
+      populateClassOptions();
+      refreshProfessorLocatorOptions();
+      renderQuickEquipmentChips();
+      renderAll();
+      renderTaskReminders();
+      const roboticsFrame = document.getElementById('workshop-followup-frame');
+      const roboticsWindow = roboticsFrame?.contentWindow;
+      if (roboticsFrame?.dataset.loaded === 'true' && roboticsWindow && typeof roboticsWindow.loadFromStorage === 'function') {
+        roboticsWindow.loadFromStorage();
+        roboticsWindow.renderClassTeacherOptions();
+        roboticsWindow.renderClassTeacherList();
+        roboticsWindow.updateBadgeCount();
+        roboticsWindow.renderCatalogEditor();
+        roboticsWindow.renderReport();
+      }
+    }
+
+    function attachCloudStateListener(stateRef, user) {
+      detachCloudStateListener();
+      cloudStateUnsubscribe = stateRef.onSnapshot(snapshot => {
+        if (!snapshot.exists || !currentUser || currentUser.uid !== user.uid || !cloudSyncReady || pendingDataConflict) return;
+        const remoteSnapshot = cloudSnapshotFromData(snapshot.data() || {}, lastCloudSnapshot || createAppDataSnapshot());
+        if (!lastCloudSnapshot) {
+          lastCloudSnapshot = cloneConflictValue(remoteSnapshot);
+          return;
+        }
+        const available = completeConflictAvailability();
+        const remoteChanges = detectAppDataConflicts(lastCloudSnapshot, remoteSnapshot, available, available);
+        if (!remoteChanges.length) return;
+        const localSnapshot = createAppDataSnapshot();
+        const localChanges = detectAppDataConflicts(lastCloudSnapshot, localSnapshot, available, available);
+        const localRemoteDifferences = detectAppDataConflicts(localSnapshot, remoteSnapshot, available, available);
+        const localChangeKeys = new Set(localChanges.map(item => item.key));
+        const localRemoteDifferenceKeys = new Set(localRemoteDifferences.map(item => item.key));
+        const conflicts = remoteChanges.filter(item => localChangeKeys.has(item.key) && localRemoteDifferenceKeys.has(item.key));
+        const conflictKeys = new Set(conflicts.map(item => item.key));
+        const mergedLocal = cloneConflictValue(lastCloudSnapshot);
+        remoteChanges.forEach(item => applyConflictGroup(mergedLocal, item.key, conflictGroupValue(remoteSnapshot, item.key)));
+        localChanges.filter(item => !conflictKeys.has(item.key)).forEach(item => applyConflictGroup(mergedLocal, item.key, conflictGroupValue(localSnapshot, item.key)));
+        const localNeedsUpload = detectAppDataConflicts(mergedLocal, remoteSnapshot, available, available).length > 0;
+        if (conflicts.length) {
+          const localVersion = cloneConflictValue(mergedLocal);
+          const onlineVersion = cloneConflictValue(mergedLocal);
+          conflicts.forEach(item => {
+            applyConflictGroup(localVersion, item.key, conflictGroupValue(localSnapshot, item.key));
+            applyConflictGroup(onlineVersion, item.key, conflictGroupValue(remoteSnapshot, item.key));
+          });
+          pendingDataConflict = {
+            local: localVersion,
+            online: onlineVersion,
+            cloudBaseline: cloneConflictValue(remoteSnapshot),
+            conflicts: conflicts.map(item => ({ ...item, choice: '' }))
+          };
+          cloudSyncReady = false;
+          clearTimeout(cloudSaveTimer);
+          cloudSaveTimer = null;
+          updateDataConflictIndicator();
+          openDataConflictResolution();
+          return;
+        }
+        lastCloudSnapshot = cloneConflictValue(remoteSnapshot);
+        applyCloudSnapshotLocally(mergedLocal);
+        if (localNeedsUpload) queueCloudSave();
+      }, error => {
+        console.error('Não foi possível acompanhar as atualizações do Firebase:', error);
+      });
+    }
+
     function summarizeConflictData(key, value) {
       const lines = [];
       const list = (items, format) => {
@@ -1420,7 +1526,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
             };
             const conflicts = detectAppDataConflicts(localData.snapshot, onlineSnapshot, localData.available, onlineAvailable);
             if (conflicts.length) {
-              pendingDataConflict = { local: cloneConflictValue(localData.snapshot), online: cloneConflictValue(onlineSnapshot), conflicts };
+              pendingDataConflict = { local: cloneConflictValue(localData.snapshot), online: cloneConflictValue(onlineSnapshot), cloudBaseline: cloneConflictValue(onlineSnapshot), conflicts };
               cloudSyncReady = false;
               clearTimeout(cloudSaveTimer);
               cloudSaveTimer = null;
@@ -1497,6 +1603,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         try {
           await firebaseDb.collection('users').doc(currentUser.uid).collection('app').doc('state').set(createCloudStateSnapshot(resolved));
           syncedOnline = true;
+          lastCloudSnapshot = cloneConflictValue(createAppDataSnapshot(resolved));
         } catch (error) {
           if (!isNetworkUnavailable(error)) {
             bookings = previousBookings;
@@ -1507,6 +1614,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           }
         }
       }
+      if (!syncedOnline) lastCloudSnapshot = cloneConflictValue(pending.cloudBaseline || pending.online);
       localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(resolved.workshopFollowupRecords || []));
       localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(resolved.workshopClassTeachers || []));
       localStorage.setItem('robotica_workshop_catalog_v3', JSON.stringify(resolved.workshopCatalog || {}));
@@ -1556,6 +1664,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           const snapshot = createCloudStateSnapshot();
           await firebaseDb.collection('users').doc(currentUser.uid)
             .collection('app').doc('state').set(snapshot);
+          lastCloudSnapshot = cloneConflictValue(createAppDataSnapshot(snapshot));
           if (offlineSyncPendingUid === currentUser.uid) {
             offlineSyncPending = false;
             offlineSyncPendingUid = null;
@@ -1764,7 +1873,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     function switchAppTab(tab) {
-      if (!['tasks', 'reminders', 'workshops', 'professor'].includes(tab)) tab = 'reminders';
+      if (!['tasks', 'reminders', 'workshops', 'professor'].includes(tab)) tab = 'tasks';
       const pageTitles = { tasks: 'Lembretes e Entregas', reminders: 'Agendamento de Equipamentos', workshops: 'Oficinas de Robótica Educacional', professor: 'Localizar Professor em Tempo Real' };
       const viewIds = { tasks: 'task-reminders-view', reminders: 'reminders-view', workshops: 'workshops-view', professor: 'professor-view' };
       const pageTitle = document.getElementById('app-page-title');
@@ -3766,7 +3875,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       document.getElementById('sidebar-tab-settings-mobile')?.removeAttribute('aria-current');
       document.getElementById('sidebar-settings-desktop')?.removeAttribute('aria-current');
       const viewIds = { tasks: 'task-reminders-view', reminders: 'reminders-view', workshops: 'workshops-view', professor: 'professor-view' };
-      const activeTab = ['tasks', 'reminders', 'workshops', 'professor'].find(name => !document.getElementById(viewIds[name]).classList.contains('hidden')) || 'reminders';
+      const activeTab = ['tasks', 'reminders', 'workshops', 'professor'].find(name => !document.getElementById(viewIds[name]).classList.contains('hidden')) || 'tasks';
       const pageTitles = { tasks: 'Lembretes e Entregas', reminders: 'Agendamento de Equipamentos', workshops: 'Oficinas de Robótica Educacional', professor: 'Localizar Professor em Tempo Real' };
       const pageTitle = document.getElementById('app-page-title');
       if (pageTitle) pageTitle.textContent = pageTitles[activeTab];
@@ -3985,6 +4094,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     function lockApplication() {
+      detachCloudStateListener();
+      lastCloudSnapshot = null;
       cloudSyncReady = false;
       pendingDataConflict = null;
       updateDataConflictIndicator();
@@ -4003,6 +4114,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     function enterLocalAdminMode() {
+      detachCloudStateListener();
+      lastCloudSnapshot = null;
       cloudSyncReady = false;
       pendingDataConflict = null;
       updateDataConflictIndicator();
@@ -4020,6 +4133,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       document.getElementById('signed-in-user').textContent = 'Administrador local — dados deste aparelho';
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('app-shell').classList.remove('hidden');
+      switchAppTab('tasks');
       updateHeaderControls();
       populateTeacherOptions();
       populateClassOptions();
@@ -4067,7 +4181,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         };
         const conflicts = detectAppDataConflicts(localData.snapshot, onlineSnapshot, localData.available, onlineAvailable);
         if (conflicts.length) {
-          pendingDataConflict = { local: cloneConflictValue(localData.snapshot), online: cloneConflictValue(onlineSnapshot), conflicts };
+          pendingDataConflict = { local: cloneConflictValue(localData.snapshot), online: cloneConflictValue(onlineSnapshot), cloudBaseline: cloneConflictValue(onlineSnapshot), conflicts };
           cloudSyncReady = false;
           updateDataConflictIndicator();
           openDataConflictResolution();
@@ -4082,6 +4196,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
 
     // Cada usuário tem um documento privado no Firestore, identificado pelo UID do Firebase.
     async function activateAuthenticatedUser(user) {
+      detachCloudStateListener();
+      lastCloudSnapshot = null;
       const storedLocal = readStoredAppDataSnapshot();
       const localOwnerBeforeLogin = localStorage.getItem(LOCAL_USER_KEY);
       const legacyEmailBeforeLogin = LEGACY_SUPABASE_ACCOUNT_EMAILS[localOwnerBeforeLogin];
@@ -4135,9 +4251,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           workshopClassTeachers: onlineAvailable.workshopClassTeachers ? data.workshopClassTeachers : cloneConflictValue(localSnapshot.workshopClassTeachers),
           workshopCatalog: onlineAvailable.workshopCatalog ? data.workshopCatalog : cloneConflictValue(localSnapshot.workshopCatalog)
         };
+        lastCloudSnapshot = cloneConflictValue(onlineSnapshot);
         if (localCacheBelongsToUser) {
           const conflicts = detectAppDataConflicts(localSnapshot, onlineSnapshot, localAvailable, onlineAvailable);
-          if (conflicts.length) pendingDataConflict = { local: cloneConflictValue(localSnapshot), online: cloneConflictValue(onlineSnapshot), conflicts };
+          if (conflicts.length) pendingDataConflict = { local: cloneConflictValue(localSnapshot), online: cloneConflictValue(onlineSnapshot), cloudBaseline: cloneConflictValue(onlineSnapshot), conflicts };
         }
         bookings = onlineSnapshot.bookings;
         taskReminders = onlineSnapshot.taskReminders;
@@ -4174,6 +4291,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         ensureProfessorSchedule();
         normalizeSchoolCatalogs();
         await stateRef.set(createCloudStateSnapshot());
+        lastCloudSnapshot = cloneConflictValue(createAppDataSnapshot());
       }
 
       ensureProfessorSchedule();
@@ -4183,6 +4301,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       document.getElementById('signed-in-user').textContent = user.displayName || user.email || 'Usuário conectado';
       document.getElementById('login-screen').classList.add('hidden');
       document.getElementById('app-shell').classList.remove('hidden');
+      switchAppTab('tasks');
       updateDataConflictIndicator();
       if (pendingDataConflict) setTimeout(openDataConflictResolution, 0);
       updateHeaderControls();
@@ -4192,6 +4311,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       renderQuickEquipmentChips();
       renderTaskReminders();
       updateClockAndMonitor();
+      if (!lastCloudSnapshot) lastCloudSnapshot = cloneConflictValue(readStoredAppDataSnapshot().snapshot);
+      attachCloudStateListener(stateRef, user);
       setLoginStatus(offlineMode ? 'Acesso offline. Os dados deste aparelho estarão disponíveis até a conexão voltar.' : 'Acesso realizado.', offlineMode ? 'warning' : 'success');
       if (offlineMode) showToast('Modo offline: alterações ficam neste aparelho e serão sincronizadas quando a conexão voltar.', 'warning');
 
