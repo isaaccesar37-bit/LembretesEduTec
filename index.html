@@ -93,7 +93,7 @@
     #urgent-banner { grid-column: 2; grid-row: 1; }
     #app-shell > header { grid-column: 2; grid-row: 2; }
     #app-shell > nav[aria-label="Seções principais"] { display: none; }
-    #reminders-view, #workshops-view, #professor-view {
+    #task-reminders-view, #reminders-view, #workshops-view, #professor-view {
       grid-column: 2;
       grid-row: 3;
       width: auto;
@@ -128,7 +128,7 @@
       #app-sidebar .sidebar-label-mobile { display: inline; }
       #app-sidebar .mobile-settings-link, #app-sidebar .mobile-conflicts-link { display: flex; }
       #app-shell > header.app-topbar { position: sticky; top: 0; }
-      #reminders-view, #workshops-view, #professor-view { width: 100%; padding-bottom: 88px; }
+      #task-reminders-view, #reminders-view, #workshops-view, #professor-view { width: 100%; padding-bottom: 88px; }
       #app-shell > footer { display: none; }
       #settings-modal, #booking-modal, #confirm-modal { z-index: 80; }
       #toast-container { bottom: calc(70px + env(safe-area-inset-bottom)); left: .75rem; right: .75rem; width: auto; max-width: none; }
@@ -153,8 +153,8 @@
       #app-shell > header.app-topbar #new-reminder-button { width: 100%; min-width: 0; min-height: 2.4rem; justify-content: center; padding: .45rem .55rem; font-size: .72rem; gap: .3rem; white-space: nowrap; }
       #app-shell > header.app-topbar #new-reminder-button i { width: .9rem; height: .9rem; }
       #app-shell > header.app-topbar #label-sound, #app-shell > header.app-topbar #label-notif { display: none; }
-      #reminders-view, #workshops-view, #professor-view { min-width: 0; padding: .85rem .7rem calc(82px + env(safe-area-inset-bottom)); }
-      #reminders-view > *, #workshops-view > *, #professor-view > * { min-width: 0; max-width: 100%; }
+      #task-reminders-view, #reminders-view, #workshops-view, #professor-view { min-width: 0; padding: .85rem .7rem calc(82px + env(safe-area-inset-bottom)); }
+      #task-reminders-view > *, #reminders-view > *, #workshops-view > *, #professor-view > * { min-width: 0; max-width: 100%; }
       #professor-view > section:first-child > div:first-child { min-width: 0; }
       #professor-view > section:first-child > div:first-child > div:last-of-type { min-width: 0; flex: 1 1 180px; }
       #professor-now-button { width: 100%; justify-content: center; }
@@ -250,6 +250,7 @@
     </div>
     <p class="sidebar-section-label px-4 pb-2 pt-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Módulos</p>
     <nav class="sidebar-nav flex flex-col gap-1 px-2" aria-label="Módulos do app">
+      <button id="sidebar-tab-tasks" type="button" onclick="switchAppTab('tasks')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="clipboard-list" class="h-4 w-4"></i><span>Lembretes</span></button>
       <button id="sidebar-tab-reminders" type="button" onclick="switchAppTab('reminders')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700" aria-current="page"><i data-lucide="laptop" class="h-4 w-4"></i><span>Equipamentos</span></button>
       <button id="sidebar-tab-workshops" type="button" onclick="switchAppTab('workshops')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="bot" class="h-4 w-4"></i><span class="sidebar-label-desktop">Oficinas de Robótica</span><span class="sidebar-label-mobile">Robótica</span></button>
       <button id="sidebar-tab-professor" type="button" onclick="switchAppTab('professor')" class="sidebar-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700"><i data-lucide="map-pin" class="h-4 w-4"></i><span class="sidebar-label-desktop">Localizar Professor</span><span class="sidebar-label-mobile">Professores</span></button>
@@ -322,7 +323,7 @@
           <button id="new-reminder-button" onclick="openCurrentReminderForm()"
             class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-semibold px-4 py-2 rounded-xl shadow-sm transition text-sm">
             <i data-lucide="plus-circle" class="w-4 h-4"></i>
-            <span id="new-reminder-label">Novo Lembrete</span>
+            <span id="new-reminder-label">Nova Reserva</span>
           </button>
         </div>
       </div>
@@ -331,6 +332,7 @@
 
   <nav class="bg-white border-b border-slate-200 shadow-sm" aria-label="Seções principais">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap gap-2 py-2">
+      <button id="tab-tasks" type="button" onclick="switchAppTab('tasks')" aria-selected="false" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="clipboard-list" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Lembretes</button>
       <button id="tab-reminders" type="button" onclick="switchAppTab('reminders')" aria-selected="true" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-emerald-600 text-white transition"><i data-lucide="package" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Lembretes Equipamentos</button>
       <button id="tab-workshops" type="button" onclick="switchAppTab('workshops')" aria-selected="false" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="bot" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Oficinas de Robótica</button>
       <button id="tab-professor" type="button" onclick="switchAppTab('professor')" aria-selected="false" class="app-tab rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="map-pin" class="inline-block w-4 h-4 mr-1.5 align-[-3px]"></i>Professor</button>
@@ -338,6 +340,31 @@
   </nav>
 
   <!-- Conteúdo Principal -->
+  <main id="task-reminders-view" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6" aria-labelledby="task-reminders-heading">
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div><h2 id="task-reminders-heading" class="text-xl font-bold text-slate-900">Lembretes e Entregas</h2><p class="mt-1 text-sm text-slate-500">Organize demandas, prazos, solicitantes e observações.</p></div>
+        <span id="task-reminder-count" class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">0 demandas</span>
+      </div>
+      <form id="task-reminder-form" onsubmit="saveTaskReminder(event)" class="space-y-4">
+        <input id="task-reminder-id" type="hidden" />
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="sm:col-span-2"><label for="task-reminder-title" class="mb-1 block text-xs font-semibold text-slate-700">Demanda</label><input id="task-reminder-title" required maxlength="140" placeholder="Ex.: corrigir avaliações do 5º ano" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+          <div><label for="task-reminder-category" class="mb-1 block text-xs font-semibold text-slate-700">Tipo de demanda</label><select id="task-reminder-category" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"><option value="">Selecione</option><option>Correção de avaliações</option><option>Desenvolvimento de design gráfico</option><option>Suporte a professores e alunos (senhas e acessos)</option><option>Desenvolvimento ou impressão de projetos em 3D</option><option>Acompanhamento da equipe de Robótica</option><option>Formação coletiva com professores</option><option>Formação individual com professores</option><option>Outra demanda</option></select></div>
+          <div><label for="task-reminder-due-date" class="mb-1 block text-xs font-semibold text-slate-700">Prazo para finalizar</label><input id="task-reminder-due-date" type="date" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+          <div><label for="task-reminder-requester" class="mb-1 block text-xs font-semibold text-slate-700">Quem solicitou</label><input id="task-reminder-requester" required maxlength="100" placeholder="Nome do solicitante" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+          <div><label for="task-reminder-notes" class="mb-1 block text-xs font-semibold text-slate-700">Observações</label><input id="task-reminder-notes" maxlength="300" placeholder="Detalhes importantes (opcional)" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
+        </div>
+        <div class="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4"><button id="task-reminder-cancel" type="button" onclick="cancelTaskReminderEdit()" class="hidden rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50">Cancelar edição</button><button id="task-reminder-save" type="submit" class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-800"><i data-lucide="plus" class="h-4 w-4"></i>Adicionar lembrete</button></div>
+      </form>
+    </section>
+    <section class="space-y-3">
+      <div class="flex flex-wrap items-end justify-between gap-2"><div><h3 class="text-base font-bold text-slate-900">Demandas registradas</h3><p class="text-xs text-slate-500">Ordenadas pelo prazo mais próximo.</p></div><div class="flex gap-2 text-[11px]"><span class="rounded-full bg-rose-50 px-2.5 py-1 font-semibold text-rose-700">Atrasadas: <b id="task-reminder-overdue-count">0</b></span><span class="rounded-full bg-amber-50 px-2.5 py-1 font-semibold text-amber-700">Para hoje: <b id="task-reminder-today-count">0</b></span></div></div>
+      <div id="task-reminders-list" class="grid gap-3 md:grid-cols-2"></div>
+      <div id="task-reminders-empty" class="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><i data-lucide="clipboard-list" class="mx-auto h-8 w-8 text-slate-300"></i><p class="mt-2 text-sm font-semibold text-slate-600">Nenhuma demanda cadastrada</p><p class="mt-1 text-xs text-slate-400">Use o formulário acima para registrar seu primeiro lembrete de trabalho.</p></div>
+    </section>
+  </main>
+
   <main id="reminders-view" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <!-- Cards de Resumo Rápido (KPIs) -->
@@ -916,6 +943,7 @@
     // =========================================================================
     const STORAGE_KEY = 'edulogistica_bookings_v1';
     const SETTINGS_KEY = 'edulogistica_settings_v1';
+    const TASK_REMINDERS_KEY = 'edulogistica_task_reminders_v1';
     const LOCAL_USER_KEY = 'edulogistica_user_id_v1';
     // Copie estes valores de Firebase Console > Configurações do projeto > Seus apps > App da Web.
     // A configuração web identifica o projeto; não inclua senhas ou credenciais de administrador aqui.
@@ -1028,6 +1056,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     ];
 
     let bookings = [];
+    let taskReminders = [];
     let settings = {
       soundEnabled: true,
       leadTimeMinutes: 15,
@@ -1124,6 +1153,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         if (savedBookings) {
           bookings = JSON.parse(savedBookings);
         }
+        taskReminders = readLocalArray(TASK_REMINDERS_KEY);
         const savedSettings = localStorage.getItem(SETTINGS_KEY);
         if (savedSettings) {
           settings = { ...settings, ...JSON.parse(savedSettings) };
@@ -1179,12 +1209,14 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     function persistLocalState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      localStorage.setItem(TASK_REMINDERS_KEY, JSON.stringify(taskReminders));
       if (currentUser) localStorage.setItem(LOCAL_USER_KEY, currentUser.uid);
     }
 
     function createAppDataSnapshot(overrides = {}) {
       return {
         bookings: overrides.bookings ?? bookings,
+        taskReminders: overrides.taskReminders ?? taskReminders,
         settings: overrides.settings ?? settings,
         workshopFollowupRecords: overrides.workshopFollowupRecords ?? readLocalArray('robotica_feedback_records_v1'),
         workshopClassTeachers: overrides.workshopClassTeachers ?? readLocalArray('robotica_class_teachers_v1'),
@@ -1209,6 +1241,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       return {
         snapshot: {
           bookings: readLocalArray(STORAGE_KEY),
+          taskReminders: readLocalArray(TASK_REMINDERS_KEY),
           settings: { ...createDefaultSettings(), ...readLocalObject(SETTINGS_KEY) },
           workshopFollowupRecords: readLocalArray('robotica_feedback_records_v1'),
           workshopClassTeachers: readLocalArray('robotica_class_teachers_v1'),
@@ -1216,6 +1249,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         },
         available: {
           bookings: localStorage.getItem(STORAGE_KEY) !== null,
+          taskReminders: localStorage.getItem(TASK_REMINDERS_KEY) !== null,
           settings: localStorage.getItem(SETTINGS_KEY) !== null,
           workshopFollowupRecords: localStorage.getItem('robotica_feedback_records_v1') !== null,
           workshopClassTeachers: localStorage.getItem('robotica_class_teachers_v1') !== null,
@@ -1227,6 +1261,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     function conflictGroupDefinitions() {
       return [
         { key: 'bookings', source: 'bookings', label: 'Lembretes de equipamentos' },
+        { key: 'taskReminders', source: 'taskReminders', label: 'Lembretes de trabalho' },
         { key: 'workshops', source: 'settings', label: 'Agendamentos de oficinas' },
         { key: 'schoolDirectory', source: 'settings', label: 'Professores, turmas e equipamentos' },
         { key: 'professorSchedule', source: 'settings', label: 'Horários dos professores' },
@@ -1241,6 +1276,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       const data = snapshot || {};
       const school = data.settings || {};
       if (key === 'bookings') return data.bookings || [];
+      if (key === 'taskReminders') return data.taskReminders || [];
       if (key === 'workshops') return school.workshops || [];
       if (key === 'schoolDirectory') return { teachers: school.teachers || [], classes: school.classes || [], equipment: school.equipment || [] };
       if (key === 'professorSchedule') return { professorNames: school.professorNames || [], professorSchedule: school.professorSchedule || [] };
@@ -1274,6 +1310,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         if (!values.length) lines.push('Nenhum item cadastrado.');
       };
       if (key === 'bookings') list(value, item => `${formatDateBR(item.date)} ${item.deliveryTime || ''} · ${item.teacher || 'Sem professor'} · ${item.className || 'Sem turma'} · ${(item.equipments || []).map(equipment => `${Number(equipment.qty) || 1}x ${equipment.name}`).join(', ')}`);
+      else if (key === 'taskReminders') list(value, item => `${formatDateBR(item.dueDate)} · ${item.category || 'Demanda'} · ${item.title || 'Sem descrição'} · Solicitante: ${item.requester || 'Não informado'}${item.observations ? ` · ${item.observations}` : ''}`);
       else if (key === 'workshops') list(value, item => `${formatDateBR(item.date)} ${item.startTime || ''} · ${item.grade || ''}º Ano · ${item.teacher || 'Sem professora'} · ${item.status || 'agendada'}`);
       else if (key === 'schoolDirectory') {
         lines.push(`Professores (${(value.teachers || []).length}): ${(value.teachers || []).join(', ') || 'nenhum'}`);
@@ -1365,6 +1402,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
             const data = savedState.data() || {};
             const onlineAvailable = {
               bookings: Array.isArray(data.bookings),
+              taskReminders: Array.isArray(data.taskReminders),
               settings: Boolean(data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)),
               workshopFollowupRecords: Array.isArray(data.workshopFollowupRecords),
               workshopClassTeachers: Array.isArray(data.workshopClassTeachers),
@@ -1372,6 +1410,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
             };
             const onlineSnapshot = {
               bookings: onlineAvailable.bookings ? data.bookings : localData.snapshot.bookings,
+              taskReminders: onlineAvailable.taskReminders ? data.taskReminders : localData.snapshot.taskReminders,
               settings: onlineAvailable.settings ? { ...createDefaultSettings(), ...data.settings } : localData.snapshot.settings,
               workshopFollowupRecords: onlineAvailable.workshopFollowupRecords ? data.workshopFollowupRecords : localData.snapshot.workshopFollowupRecords,
               workshopClassTeachers: onlineAvailable.workshopClassTeachers ? data.workshopClassTeachers : localData.snapshot.workshopClassTeachers,
@@ -1416,6 +1455,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
 
     function applyConflictGroup(snapshot, key, value) {
       if (key === 'bookings') snapshot.bookings = cloneConflictValue(value);
+      else if (key === 'taskReminders') snapshot.taskReminders = cloneConflictValue(value);
       else if (key === 'workshops') snapshot.settings.workshops = cloneConflictValue(value);
       else if (key === 'schoolDirectory') Object.assign(snapshot.settings, cloneConflictValue(value));
       else if (key === 'professorSchedule') Object.assign(snapshot.settings, cloneConflictValue(value));
@@ -1440,7 +1480,9 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       });
       const previousBookings = bookings;
       const previousSettings = settings;
+      const previousTaskReminders = taskReminders;
       bookings = Array.isArray(resolved.bookings) ? resolved.bookings : [];
+      taskReminders = Array.isArray(resolved.taskReminders) ? resolved.taskReminders : [];
       settings = { ...createDefaultSettings(), ...(resolved.settings || {}) };
       ensureProfessorSchedule();
       normalizeSchoolCatalogs();
@@ -1457,6 +1499,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           if (!isNetworkUnavailable(error)) {
             bookings = previousBookings;
             settings = previousSettings;
+            taskReminders = previousTaskReminders;
             showToast('Não foi possível aplicar as escolhas no Firebase. Os conflitos continuam disponíveis.', 'error');
             return;
           }
@@ -1465,6 +1508,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(resolved.workshopFollowupRecords || []));
       localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(resolved.workshopClassTeachers || []));
       localStorage.setItem('robotica_workshop_catalog_v3', JSON.stringify(resolved.workshopCatalog || {}));
+      localStorage.setItem(TASK_REMINDERS_KEY, JSON.stringify(taskReminders));
       pendingDataConflict = null;
       cloudSyncReady = Boolean(firebaseDb && currentUser);
       persistLocalState();
@@ -1475,6 +1519,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       refreshProfessorLocatorOptions();
       renderQuickEquipmentChips();
       renderAll();
+      renderTaskReminders();
       renderWorkshopPedagogicalProgress();
       const roboticsFrame = document.getElementById('workshop-followup-frame');
       const roboticsWindow = roboticsFrame?.contentWindow;
@@ -1717,13 +1762,14 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     function switchAppTab(tab) {
-      if (!['reminders', 'workshops', 'professor'].includes(tab)) tab = 'reminders';
-      const pageTitles = { reminders: 'Agendamento de Equipamentos', workshops: 'Oficinas de Robótica Educacional', professor: 'Localizar Professor em Tempo Real' };
+      if (!['tasks', 'reminders', 'workshops', 'professor'].includes(tab)) tab = 'reminders';
+      const pageTitles = { tasks: 'Lembretes e Entregas', reminders: 'Agendamento de Equipamentos', workshops: 'Oficinas de Robótica Educacional', professor: 'Localizar Professor em Tempo Real' };
+      const viewIds = { tasks: 'task-reminders-view', reminders: 'reminders-view', workshops: 'workshops-view', professor: 'professor-view' };
       const pageTitle = document.getElementById('app-page-title');
       if (pageTitle) pageTitle.textContent = pageTitles[tab];
-      ['reminders', 'workshops', 'professor'].forEach(name => {
+      ['tasks', 'reminders', 'workshops', 'professor'].forEach(name => {
         const selected = name === tab;
-        document.getElementById(name + '-view').classList.toggle('hidden', !selected);
+        document.getElementById(viewIds[name]).classList.toggle('hidden', !selected);
         const button = document.getElementById('tab-' + name);
         button.setAttribute('aria-selected', String(selected));
         button.className = 'app-tab rounded-xl px-4 py-2 text-sm font-semibold transition ' +
@@ -1733,7 +1779,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         else sidebarButton.removeAttribute('aria-current');
       });
       const label = document.getElementById('new-reminder-label');
-      if (label) label.textContent = 'Novo Lembrete';
+      if (label) label.textContent = tab === 'tasks' ? 'Novo Lembrete' : 'Nova Reserva';
+      if (tab === 'tasks') renderTaskReminders();
       if (tab === 'workshops') {
         renderWorkshops();
         if (!document.getElementById('workshop-weekly-panel').classList.contains('hidden')) renderWorkshopWeeklyGrid();
@@ -2285,8 +2332,123 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     function openCurrentReminderForm() {
+      if (!document.getElementById('task-reminders-view').classList.contains('hidden')) {
+        openTaskReminderForm();
+        return;
+      }
       switchAppTab('reminders');
       openBookingModal();
+    }
+
+    function resetTaskReminderForm() {
+      document.getElementById('task-reminder-form').reset();
+      document.getElementById('task-reminder-id').value = '';
+      document.getElementById('task-reminder-cancel').classList.add('hidden');
+      document.getElementById('task-reminder-save').innerHTML = '<i data-lucide="plus" class="h-4 w-4"></i>Adicionar lembrete';
+      lucide.createIcons();
+    }
+
+    function cancelTaskReminderEdit() {
+      resetTaskReminderForm();
+    }
+
+    function openTaskReminderForm() {
+      switchAppTab('tasks');
+      resetTaskReminderForm();
+      document.getElementById('task-reminder-title').focus();
+    }
+
+    function saveTaskReminder(event) {
+      event.preventDefault();
+      const id = document.getElementById('task-reminder-id').value;
+      const existing = taskReminders.find(item => String(item.id) === id);
+      const title = document.getElementById('task-reminder-title').value.trim();
+      const category = document.getElementById('task-reminder-category').value;
+      const dueDate = document.getElementById('task-reminder-due-date').value;
+      const requester = document.getElementById('task-reminder-requester').value.trim();
+      const observations = document.getElementById('task-reminder-notes').value.trim();
+      if (!title || !category || !dueDate || !requester) return;
+      const timestamp = new Date().toISOString();
+      const reminder = {
+        id: existing ? existing.id : `task-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        title, category, dueDate, requester, observations,
+        completed: Boolean(existing?.completed),
+        completedAt: existing?.completedAt || '',
+        createdAt: existing?.createdAt || timestamp,
+        updatedAt: timestamp
+      };
+      if (existing) taskReminders = taskReminders.map(item => String(item.id) === id ? reminder : item);
+      else taskReminders.push(reminder);
+      saveState();
+      resetTaskReminderForm();
+      renderTaskReminders();
+      showToast(existing ? 'Demanda atualizada.' : 'Lembrete de trabalho adicionado.', 'success');
+    }
+
+    function editTaskReminder(id) {
+      const reminder = taskReminders.find(item => String(item.id) === String(id));
+      if (!reminder) return;
+      document.getElementById('task-reminder-id').value = String(reminder.id);
+      document.getElementById('task-reminder-title').value = reminder.title || '';
+      document.getElementById('task-reminder-category').value = reminder.category || '';
+      document.getElementById('task-reminder-due-date').value = reminder.dueDate || '';
+      document.getElementById('task-reminder-requester').value = reminder.requester || '';
+      document.getElementById('task-reminder-notes').value = reminder.observations || '';
+      document.getElementById('task-reminder-cancel').classList.remove('hidden');
+      document.getElementById('task-reminder-save').innerHTML = '<i data-lucide="save" class="h-4 w-4"></i>Salvar alterações';
+      lucide.createIcons();
+      document.getElementById('task-reminder-title').focus();
+    }
+
+    function confirmDeleteTaskReminder(id) {
+      const reminder = taskReminders.find(item => String(item.id) === String(id));
+      if (!reminder) return;
+      openConfirmModal('Excluir este lembrete?', `A demanda “${reminder.title}” será removida.`, () => {
+        taskReminders = taskReminders.filter(item => String(item.id) !== String(id));
+        saveState();
+        renderTaskReminders();
+        showToast('Lembrete removido.', 'info');
+      });
+    }
+
+    function toggleTaskReminderCompleted(id) {
+      const reminder = taskReminders.find(item => String(item.id) === String(id));
+      if (!reminder) return;
+      reminder.completed = !reminder.completed;
+      reminder.updatedAt = new Date().toISOString();
+      reminder.completedAt = reminder.completed ? reminder.updatedAt : '';
+      saveState();
+      renderTaskReminders();
+      showToast(reminder.completed ? 'Lembrete marcado como concluído.' : 'Lembrete reaberto.', 'success');
+    }
+
+    function renderTaskReminders() {
+      const list = document.getElementById('task-reminders-list');
+      if (!list) return;
+      const empty = document.getElementById('task-reminders-empty');
+      const today = getTodayISO();
+      const sorted = [...taskReminders].sort((a, b) => Number(Boolean(a.completed)) - Number(Boolean(b.completed)) || String(a.dueDate || '').localeCompare(String(b.dueDate || '')));
+      document.getElementById('task-reminder-count').textContent = `${taskReminders.length} ${taskReminders.length === 1 ? 'demanda' : 'demandas'}`;
+      document.getElementById('task-reminder-overdue-count').textContent = taskReminders.filter(item => !item.completed && item.dueDate && item.dueDate < today).length;
+      document.getElementById('task-reminder-today-count').textContent = taskReminders.filter(item => !item.completed && item.dueDate === today).length;
+      empty.classList.toggle('hidden', sorted.length > 0);
+      list.innerHTML = sorted.map(item => {
+        const completed = Boolean(item.completed);
+        const overdue = !completed && item.dueDate < today;
+        const dueToday = !completed && item.dueDate === today;
+        const dueStyle = completed ? 'bg-emerald-50 text-emerald-700' : overdue ? 'bg-rose-50 text-rose-700' : dueToday ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800';
+        const dueLabel = completed ? 'Concluída' : overdue ? 'Atrasada' : dueToday ? 'Prazo hoje' : 'Prazo';
+        const titleStyle = completed ? 'line-through text-slate-500' : 'text-slate-900';
+        const completeButton = completed
+          ? '<i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>Reabrir'
+          : '<i data-lucide="circle-check" class="h-3.5 w-3.5"></i>Concluído';
+        const completeStyle = completed ? 'border border-slate-200 text-slate-600 hover:bg-slate-50' : 'border border-emerald-200 text-emerald-700 hover:bg-emerald-50';
+        return `<article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm ${completed ? 'opacity-80' : ''}"><div class="flex items-start justify-between gap-3"><div class="min-w-0"><span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">${escapeHTML(item.category || 'Demanda')}</span><h4 class="mt-2 break-words text-sm font-bold ${titleStyle}">${escapeHTML(item.title || 'Demanda sem título')}</h4></div><span class="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${dueStyle}">${dueLabel}</span></div><div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500"><span><i data-lucide="calendar-days" class="mr-1 inline h-3.5 w-3.5"></i>${escapeHTML(formatDateBR(item.dueDate))}</span><span><i data-lucide="user-round" class="mr-1 inline h-3.5 w-3.5"></i>Solicitado por ${escapeHTML(item.requester || 'Não informado')}</span></div>${item.observations ? `<p class="mt-3 whitespace-pre-wrap rounded-lg bg-slate-50 p-2.5 text-xs leading-relaxed text-slate-600">${escapeHTML(item.observations)}</p>` : ''}<div class="mt-3 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3"><button type="button" data-task-action="complete" data-task-id="${escapeHTML(String(item.id))}" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${completeStyle}">${completeButton}</button><button type="button" data-task-action="edit" data-task-id="${escapeHTML(String(item.id))}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"><i data-lucide="pencil" class="h-3.5 w-3.5"></i>Editar</button><button type="button" data-task-action="delete" data-task-id="${escapeHTML(String(item.id))}" class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i>Excluir</button></div></article>`;
+      }).join('');
+      list.querySelectorAll('[data-task-action="complete"]').forEach(button => button.addEventListener('click', () => toggleTaskReminderCompleted(button.dataset.taskId)));
+      list.querySelectorAll('[data-task-action="edit"]').forEach(button => button.addEventListener('click', () => editTaskReminder(button.dataset.taskId)));
+      list.querySelectorAll('[data-task-action="delete"]').forEach(button => button.addEventListener('click', () => confirmDeleteTaskReminder(button.dataset.taskId)));
+      lucide.createIcons();
     }
 
     function resetWorkshopForm() {
@@ -3601,8 +3763,9 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       modal.classList.remove('flex');
       document.getElementById('sidebar-tab-settings-mobile')?.removeAttribute('aria-current');
       document.getElementById('sidebar-settings-desktop')?.removeAttribute('aria-current');
-      const activeTab = ['reminders', 'workshops', 'professor'].find(name => !document.getElementById(name + '-view').classList.contains('hidden')) || 'reminders';
-      const pageTitles = { reminders: 'Agendamento de Equipamentos', workshops: 'Oficinas de Robótica Educacional', professor: 'Localizar Professor em Tempo Real' };
+      const viewIds = { tasks: 'task-reminders-view', reminders: 'reminders-view', workshops: 'workshops-view', professor: 'professor-view' };
+      const activeTab = ['tasks', 'reminders', 'workshops', 'professor'].find(name => !document.getElementById(viewIds[name]).classList.contains('hidden')) || 'reminders';
+      const pageTitles = { tasks: 'Lembretes e Entregas', reminders: 'Agendamento de Equipamentos', workshops: 'Oficinas de Robótica Educacional', professor: 'Localizar Professor em Tempo Real' };
       const pageTitle = document.getElementById('app-page-title');
       if (pageTitle) pageTitle.textContent = pageTitles[activeTab];
     }
@@ -3619,7 +3782,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     function exportJSON() {
       const backup = {
         app: 'LembretesEduTec',
-        version: 2,
+        version: 3,
         exportedAt: new Date().toISOString(),
         ...createAppDataSnapshot()
       };
@@ -3659,6 +3822,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
             schoolCatalogsResetV1: true
           };
           const robotics = parsed.robotics && typeof parsed.robotics === 'object' ? parsed.robotics : {};
+          if (Array.isArray(parsed.taskReminders)) taskReminders = parsed.taskReminders;
           const followupRecords = parsed.workshopFollowupRecords ?? robotics.followupRecords;
           const classTeachers = parsed.workshopClassTeachers ?? robotics.classTeachers;
           const workshopCatalog = parsed.workshopCatalog ?? robotics.catalog;
@@ -3674,6 +3838,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           populateClassOptions();
           renderQuickEquipmentChips();
           renderAll();
+          renderTaskReminders();
           const roboticsFrame = document.getElementById('workshop-followup-frame');
           const roboticsWindow = roboticsFrame?.contentWindow;
           if (roboticsFrame?.dataset.loaded === 'true' && roboticsWindow && typeof roboticsWindow.loadFromStorage === 'function') {
@@ -3686,7 +3851,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           }
           const roboticsRecordCount = readLocalArray('robotica_feedback_records_v1').length;
           closeSettingsModal();
-          showToast(`Backup importado: ${bookings.length} lembrete(s) e ${roboticsRecordCount} registro(s) da Robótica.`, 'success');
+          showToast(`Backup importado: ${bookings.length} agendamento(s), ${taskReminders.length} demanda(s) e ${roboticsRecordCount} registro(s) da Robótica.`, 'success');
         } catch (err) {
           showToast('Arquivo de backup inválido. Verifique o arquivo selecionado.', 'error');
         }
@@ -3697,12 +3862,14 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     function confirmClearAllData() {
       openConfirmModal(
         'Apagar todos os dados?',
-        'Todos os agendamentos salvos neste navegador serão apagados.',
+        'Todos os agendamentos, lembretes de trabalho e dados relacionados serão apagados deste aparelho e da conta conectada.',
         () => {
           bookings = [];
+          taskReminders = [];
           settings.notifiedEvents = {};
           saveState();
           renderAll();
+          renderTaskReminders();
           closeSettingsModal();
           showToast('Todos os registros foram limpos.', 'info');
         }
@@ -3825,6 +3992,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       currentUser = null;
       localAdminMode = false;
       bookings = [];
+      taskReminders = [];
       settings = createDefaultSettings();
       document.getElementById('app-shell').classList.add('hidden');
       document.getElementById('login-screen').classList.remove('hidden');
@@ -3842,6 +4010,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       currentUser = null;
       localAdminMode = true;
       bookings = [];
+      taskReminders = [];
       settings = createDefaultSettings();
       loadState();
       persistLocalState();
@@ -3853,6 +4022,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       populateTeacherOptions();
       populateClassOptions();
       renderQuickEquipmentChips();
+      renderTaskReminders();
       updateClockAndMonitor();
       setLoginStatus('Acesso local ativado. Os dados não serão sincronizados com o Firebase.', 'success');
 
@@ -3879,6 +4049,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         const data = savedState.data() || {};
         const onlineAvailable = {
           bookings: Array.isArray(data.bookings),
+          taskReminders: Array.isArray(data.taskReminders),
           settings: Boolean(data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)),
           workshopFollowupRecords: Array.isArray(data.workshopFollowupRecords),
           workshopClassTeachers: Array.isArray(data.workshopClassTeachers),
@@ -3886,6 +4057,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         };
         const onlineSnapshot = {
           bookings: onlineAvailable.bookings ? data.bookings : localData.snapshot.bookings,
+          taskReminders: onlineAvailable.taskReminders ? data.taskReminders : localData.snapshot.taskReminders,
           settings: onlineAvailable.settings ? { ...createDefaultSettings(), ...data.settings } : localData.snapshot.settings,
           workshopFollowupRecords: onlineAvailable.workshopFollowupRecords ? data.workshopFollowupRecords : localData.snapshot.workshopFollowupRecords,
           workshopClassTeachers: onlineAvailable.workshopClassTeachers ? data.workshopClassTeachers : localData.snapshot.workshopClassTeachers,
@@ -3913,10 +4085,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       const legacyEmailBeforeLogin = LEGACY_SUPABASE_ACCOUNT_EMAILS[localOwnerBeforeLogin];
       const localCacheBelongsToUser = !localOwnerBeforeLogin || localOwnerBeforeLogin === user.uid || legacyEmailBeforeLogin === (user.email || '').toLowerCase();
       const localSnapshot = localCacheBelongsToUser ? storedLocal.snapshot : {
-        bookings: [], settings: createDefaultSettings(), workshopFollowupRecords: [], workshopClassTeachers: [], workshopCatalog: {}
+        bookings: [], taskReminders: [], settings: createDefaultSettings(), workshopFollowupRecords: [], workshopClassTeachers: [], workshopCatalog: {}
       };
       const localAvailable = localCacheBelongsToUser ? storedLocal.available : {
-        bookings: false, settings: false, workshopFollowupRecords: false, workshopClassTeachers: false, workshopCatalog: false
+        bookings: false, taskReminders: false, settings: false, workshopFollowupRecords: false, workshopClassTeachers: false, workshopCatalog: false
       };
       pendingDataConflict = null;
       currentUser = user;
@@ -3947,6 +4119,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         const data = savedState.data() || {};
         const onlineAvailable = {
           bookings: Array.isArray(data.bookings),
+          taskReminders: Array.isArray(data.taskReminders),
           settings: Boolean(data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)),
           workshopFollowupRecords: Array.isArray(data.workshopFollowupRecords),
           workshopClassTeachers: Array.isArray(data.workshopClassTeachers),
@@ -3954,6 +4127,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         };
         const onlineSnapshot = {
           bookings: onlineAvailable.bookings ? data.bookings : cloneConflictValue(localSnapshot.bookings),
+          taskReminders: onlineAvailable.taskReminders ? data.taskReminders : cloneConflictValue(localSnapshot.taskReminders),
           settings: onlineAvailable.settings ? { ...createDefaultSettings(), ...data.settings } : cloneConflictValue(localSnapshot.settings),
           workshopFollowupRecords: onlineAvailable.workshopFollowupRecords ? data.workshopFollowupRecords : cloneConflictValue(localSnapshot.workshopFollowupRecords),
           workshopClassTeachers: onlineAvailable.workshopClassTeachers ? data.workshopClassTeachers : cloneConflictValue(localSnapshot.workshopClassTeachers),
@@ -3964,14 +4138,17 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
           if (conflicts.length) pendingDataConflict = { local: cloneConflictValue(localSnapshot), online: cloneConflictValue(onlineSnapshot), conflicts };
         }
         bookings = onlineSnapshot.bookings;
+        taskReminders = onlineSnapshot.taskReminders;
         settings = { ...createDefaultSettings(), ...onlineSnapshot.settings };
         if (!pendingDataConflict) {
+          localStorage.setItem(TASK_REMINDERS_KEY, JSON.stringify(taskReminders));
           localStorage.setItem('robotica_feedback_records_v1', JSON.stringify(onlineSnapshot.workshopFollowupRecords));
           localStorage.setItem('robotica_class_teachers_v1', JSON.stringify(onlineSnapshot.workshopClassTeachers));
           localStorage.setItem('robotica_workshop_catalog_v3', JSON.stringify(onlineSnapshot.workshopCatalog));
         }
         normalizeRoboticsWorkshopTeachers();
         stateNeedsMigration = !Array.isArray(data.settings?.professorSchedule) || !Array.isArray(data.settings?.professorNames)
+          || !Array.isArray(data.taskReminders)
           || !Array.isArray(data.workshopFollowupRecords) || !Array.isArray(data.workshopClassTeachers)
           || !data.workshopCatalog || typeof data.workshopCatalog !== 'object' || Array.isArray(data.workshopCatalog);
       } else if (!offlineMode) {
@@ -3980,11 +4157,14 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         const canImportLocalCache = !localOwner || localOwner === user.uid || legacyEmail === (user.email || '').toLowerCase();
         if (canImportLocalCache) {
           bookings = [];
+          taskReminders = [];
           settings = createDefaultSettings();
           loadState();
         } else {
           bookings = [];
+          taskReminders = [];
           settings = createDefaultSettings();
+          localStorage.setItem(TASK_REMINDERS_KEY, '[]');
           localStorage.setItem('robotica_feedback_records_v1', '[]');
           localStorage.setItem('robotica_class_teachers_v1', '[]');
           localStorage.setItem('robotica_workshop_catalog_v3', '{}');
@@ -4008,6 +4188,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       populateClassOptions();
       refreshProfessorLocatorOptions();
       renderQuickEquipmentChips();
+      renderTaskReminders();
       updateClockAndMonitor();
       setLoginStatus(offlineMode ? 'Acesso offline. Os dados deste aparelho estarão disponíveis até a conexão voltar.' : 'Acesso realizado.', offlineMode ? 'warning' : 'success');
       if (offlineMode) showToast('Modo offline: alterações ficam neste aparelho e serão sincronizadas quando a conexão voltar.', 'warning');
