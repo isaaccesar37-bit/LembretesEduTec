@@ -131,6 +131,8 @@
       #task-reminders-view, #reminders-view, #workshops-view, #professor-view { width: 100%; padding-bottom: 88px; }
       #app-shell > footer { display: none; }
       #settings-modal, #booking-modal, #confirm-modal { z-index: 80; }
+      #settings-modal { z-index: 50; bottom: calc(62px + env(safe-area-inset-bottom)); }
+      #settings-modal > div { max-height: 100%; }
       #toast-container { bottom: calc(70px + env(safe-area-inset-bottom)); left: .75rem; right: .75rem; width: auto; max-width: none; }
     }
     @media (max-width: 640px) {
@@ -169,7 +171,7 @@
       #workshop-main-tabs [role="tab"] { display: flex; min-width: 0; flex: 1 1 auto; align-items: center; justify-content: center; padding: .5rem .45rem; font-size: .68rem; line-height: 1.2; }
       #workshop-main-tabs [role="tab"] i { flex: 0 0 auto; }
       #settings-modal { padding: 0; }
-      #settings-modal > div { width: 100%; max-width: none; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+      #settings-modal > div { width: 100%; max-width: none; height: 100%; max-height: 100%; border-radius: 0; }
       #settings-modal input, #settings-modal select, #settings-modal button { min-width: 0; max-width: 100%; }
       #workshops-list { grid-template-columns: 1fr; }
     }
