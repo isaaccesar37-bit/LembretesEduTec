@@ -345,9 +345,6 @@
 
   <!-- Conteúdo Principal -->
   <main id="task-reminders-view" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6" aria-labelledby="task-reminders-heading">
-    <section class="flex flex-wrap items-center gap-3" aria-label="Adicionar lembrete">
-      <button type="button" onclick="openTaskReminderForm()" class="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-emerald-800"><i data-lucide="plus" class="h-4 w-4"></i>Adicionar Lembrete</button>
-    </section>
     <section class="space-y-3">
       <div class="flex flex-wrap items-end justify-between gap-2"><div><h3 class="text-base font-bold text-slate-900">Lembretes e Entregas Registradas</h3><p class="text-xs text-slate-500">Ordenadas pelo prazo mais próximo.</p></div><div class="flex flex-wrap gap-2 text-[11px]"><span id="task-reminder-count" class="rounded-full bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-700">0 lembretes</span><span class="rounded-full bg-rose-50 px-2.5 py-1 font-semibold text-rose-700">Atrasadas: <b id="task-reminder-overdue-count">0</b></span><span class="rounded-full bg-amber-50 px-2.5 py-1 font-semibold text-amber-700">Para hoje: <b id="task-reminder-today-count">0</b></span></div></div>
       <div id="task-reminders-list" class="grid gap-3 md:grid-cols-2"></div>
