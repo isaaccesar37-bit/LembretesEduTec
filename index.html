@@ -1290,6 +1290,30 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       return lines.join('\n');
     }
 
+    function renderConflictDiffMarkup(key, source) {
+      if (!pendingDataConflict) return '';
+      const localText = summarizeConflictData(key, conflictGroupValue(pendingDataConflict.local, key));
+      const onlineText = summarizeConflictData(key, conflictGroupValue(pendingDataConflict.online, key));
+      const text = source === 'local' ? localText : onlineText;
+      const otherText = source === 'local' ? onlineText : localText;
+      const tokenize = value => value.match(/[\p{L}\p{N}_]+|[^\p{L}\p{N}_\s]+|\s+/gu) || [];
+      const otherCounts = new Map();
+      tokenize(otherText).filter(token => !/^\s+$/u.test(token)).forEach(token => {
+        const normalized = token.toLocaleLowerCase('pt-BR');
+        otherCounts.set(normalized, (otherCounts.get(normalized) || 0) + 1);
+      });
+      return tokenize(text).map(token => {
+        if (/^\s+$/u.test(token)) return escapeHTML(token);
+        const normalized = token.toLocaleLowerCase('pt-BR');
+        const matches = otherCounts.get(normalized) || 0;
+        if (matches > 0) {
+          otherCounts.set(normalized, matches - 1);
+          return `<span class="rounded-sm bg-emerald-100 px-0.5 text-emerald-800">${escapeHTML(token)}</span>`;
+        }
+        return `<span class="rounded-sm bg-rose-100 px-0.5 text-rose-800">${escapeHTML(token)}</span>`;
+      }).join('');
+    }
+
     function updateDataConflictIndicator() {
       const count = pendingDataConflict?.conflicts?.length || 0;
       ['sidebar-conflict-count-desktop', 'sidebar-conflict-count-mobile'].forEach(id => {
@@ -1321,7 +1345,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         const onlineSelected = conflict.choice === 'online';
         const localStyle = localSelected ? 'border-emerald-500 bg-emerald-50 ring-1 ring-emerald-300' : 'border-slate-200 bg-white';
         const onlineStyle = onlineSelected ? 'border-sky-500 bg-sky-50 ring-1 ring-sky-300' : 'border-slate-200 bg-white';
-        return `<article class="rounded-xl border border-slate-200 p-3 sm:p-4"><div class="mb-3 flex items-center justify-between gap-2"><h3 class="text-sm font-bold text-slate-800">${escapeHTML(conflict.label)}</h3><span class="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-700">Diferença encontrada</span></div><p class="mb-2 text-[11px] text-slate-500">Compare os dados locais com os dados do Firebase exibidos abaixo.</p><div class="grid gap-2 md:grid-cols-2"><section class="rounded-lg border p-3 ${localStyle}"><div class="mb-2 flex items-center justify-between gap-2"><h4 class="text-xs font-bold text-slate-800">Neste aparelho</h4><button type="button" aria-pressed="${localSelected}" onclick="selectDataConflictSource('${conflict.key}','local')" class="rounded-lg px-2.5 py-1.5 text-[10px] font-bold ${localSelected ? 'bg-emerald-700 text-white' : 'border border-emerald-300 bg-white text-emerald-800'}">${localSelected ? 'Selecionado' : 'Manter local'}</button></div><details open><summary class="cursor-pointer text-[10px] font-semibold text-slate-500">Dados locais</summary><pre class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md bg-white/80 p-2 text-[10px] leading-relaxed text-slate-600">${escapeHTML(summarizeConflictData(conflict.key, conflictGroupValue(pendingDataConflict.local, conflict.key)))}</pre></details></section><section class="rounded-lg border p-3 ${onlineStyle}"><div class="mb-2 flex items-center justify-between gap-2"><h4 class="text-xs font-bold text-slate-800">No Firebase</h4><button type="button" aria-pressed="${onlineSelected}" onclick="selectDataConflictSource('${conflict.key}','online')" class="rounded-lg px-2.5 py-1.5 text-[10px] font-bold ${onlineSelected ? 'bg-sky-700 text-white' : 'border border-sky-300 bg-white text-sky-800'}">${onlineSelected ? 'Selecionado' : 'Usar online'}</button></div><details open><summary class="cursor-pointer text-[10px] font-semibold text-slate-500">Dados do Firebase</summary><pre class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md bg-white/80 p-2 text-[10px] leading-relaxed text-slate-600">${escapeHTML(summarizeConflictData(conflict.key, conflictGroupValue(pendingDataConflict.online, conflict.key)))}</pre></details></section></div></article>`;
+        return `<article class="rounded-xl border border-slate-200 p-3 sm:p-4"><div class="mb-3 flex items-center justify-between gap-2"><h3 class="text-sm font-bold text-slate-800">${escapeHTML(conflict.label)}</h3><span class="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-700">Diferença encontrada</span></div><p class="mb-2 text-[11px] text-slate-500">Compare os dados locais com os dados do Firebase exibidos abaixo.</p><div class="grid gap-2 md:grid-cols-2"><section class="rounded-lg border p-3 ${localStyle}"><div class="mb-2 flex items-center justify-between gap-2"><h4 class="text-xs font-bold text-slate-800">Neste aparelho</h4><button type="button" aria-pressed="${localSelected}" onclick="selectDataConflictSource('${conflict.key}','local')" class="rounded-lg px-2.5 py-1.5 text-[10px] font-bold ${localSelected ? 'bg-emerald-700 text-white' : 'border border-emerald-300 bg-white text-emerald-800'}">${localSelected ? 'Selecionado' : 'Manter local'}</button></div><details open><summary class="cursor-pointer text-[10px] font-semibold text-slate-500">Dados locais</summary><pre class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md bg-white/80 p-2 text-[10px] leading-relaxed text-slate-600">${renderConflictDiffMarkup(conflict.key, 'local')}</pre></details></section><section class="rounded-lg border p-3 ${onlineStyle}"><div class="mb-2 flex items-center justify-between gap-2"><h4 class="text-xs font-bold text-slate-800">No Firebase</h4><button type="button" aria-pressed="${onlineSelected}" onclick="selectDataConflictSource('${conflict.key}','online')" class="rounded-lg px-2.5 py-1.5 text-[10px] font-bold ${onlineSelected ? 'bg-sky-700 text-white' : 'border border-sky-300 bg-white text-sky-800'}">${onlineSelected ? 'Selecionado' : 'Usar online'}</button></div><details open><summary class="cursor-pointer text-[10px] font-semibold text-slate-500">Dados do Firebase</summary><pre class="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-md bg-white/80 p-2 text-[10px] leading-relaxed text-slate-600">${renderConflictDiffMarkup(conflict.key, 'online')}</pre></details></section></div></article>`;
       }).join('');
       const selectedCount = conflicts.filter(conflict => conflict.choice).length;
       status.textContent = `${selectedCount} de ${conflicts.length} conflitos selecionados.`;
@@ -4151,7 +4175,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
   </dialog>
   <div id="data-conflict-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5" role="dialog" aria-modal="true" aria-labelledby="data-conflict-title">
     <div class="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-      <div class="border-b border-slate-200 px-5 py-4"><h2 id="data-conflict-title" class="text-base font-bold text-slate-900">Conflitos entre dados locais e online</h2><p class="mt-1 text-xs leading-relaxed text-slate-500">Confira as duas versões. Escolha qual manter em cada grupo; depois confirme para atualizar o aparelho e o Firebase.</p></div>
+      <div class="border-b border-slate-200 px-5 py-4"><h2 id="data-conflict-title" class="text-base font-bold text-slate-900">Conflitos entre dados locais e online</h2><p class="mt-1 text-xs leading-relaxed text-slate-500">Confira as duas versões. Escolha qual manter em cada grupo; depois confirme para atualizar o aparelho e o Firebase.</p><div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] font-semibold"><span class="text-emerald-700"><span class="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-emerald-200"></span>Verde: informação em comum</span><span class="text-rose-700"><span class="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-rose-200"></span>Vermelho: informação diferente</span></div></div>
       <div id="data-conflict-list" class="min-h-0 space-y-3 overflow-y-auto p-4 sm:p-5"></div>
       <div id="data-conflict-empty" class="hidden p-8 text-center"><i data-lucide="circle-check" class="mx-auto h-9 w-9 text-emerald-600"></i><h3 class="mt-2 text-sm font-bold text-slate-800">Nenhum conflito encontrado</h3><p class="mt-1 text-xs text-slate-500">Os dados locais e online estão alinhados.</p></div>
       <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-5"><p id="data-conflict-selection-status" class="text-xs text-slate-500"></p><div class="flex gap-2"><button id="data-conflict-close" type="button" onclick="closeDataConflictResolution()" class="hidden rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">Fechar</button><button id="data-conflict-apply" type="button" onclick="confirmResolveDataConflicts()" disabled class="rounded-lg bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-40">Confirmar escolhas</button></div></div>
