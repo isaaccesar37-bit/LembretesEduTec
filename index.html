@@ -2778,10 +2778,11 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       const empty = document.getElementById('task-reminders-empty');
       const today = getTodayISO();
       const todayTimestamp = new Date(`${today}T00:00:00`).getTime();
+      const nowTimestamp = Date.now();
       const pendingDueTimestamps = taskReminders
         .filter(item => !item.completed && item.dueDate)
-        .map(item => new Date(`${item.dueDate}T00:00:00`).getTime())
-        .filter(timestamp => Number.isFinite(timestamp) && timestamp >= todayTimestamp);
+        .map(item => new Date(`${item.dueDate}T${item.dueTime || '23:59:59'}`).getTime())
+        .filter(timestamp => Number.isFinite(timestamp) && timestamp >= nowTimestamp);
       const nearestPendingDue = pendingDueTimestamps.length ? Math.min(...pendingDueTimestamps) : NaN;
       const farthestPendingDue = pendingDueTimestamps.length ? Math.max(...pendingDueTimestamps) : NaN;
       const sorted = [...taskReminders].sort((a, b) => Number(Boolean(a.completed)) - Number(Boolean(b.completed)) || String(a.dueDate || '').localeCompare(String(b.dueDate || '')) || String(a.dueTime || '').localeCompare(String(b.dueTime || '')));
@@ -2796,17 +2797,18 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         const dueStyle = completed ? 'bg-emerald-50 text-emerald-700' : overdue ? 'bg-rose-50 text-rose-700' : dueToday ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800';
         const dueLabel = completed ? 'Concluída' : overdue ? 'Atrasada' : dueToday ? 'Prazo hoje' : 'Prazo';
         const titleStyle = completed ? 'line-through text-slate-500' : 'text-slate-900';
-        const dueTimestamp = item.dueDate ? new Date(`${item.dueDate}T00:00:00`).getTime() : NaN;
-        const hasPendingRange = Number.isFinite(nearestPendingDue) && Number.isFinite(farthestPendingDue);
-        const dueRange = farthestPendingDue - nearestPendingDue;
-        const urgencyRatio = completed || !Number.isFinite(dueTimestamp)
-          ? 0
-          : overdue ? 1
-            : !hasPendingRange ? 0.5
-              : dueRange === 0 ? 0.5 : (farthestPendingDue - dueTimestamp) / dueRange;
-        const urgencyProgress = completed ? 100 : Number.isFinite(dueTimestamp) && hasPendingRange ? 8 + (urgencyRatio * 92) : 0;
-        const urgencyHue = completed ? 145 : Math.round(120 * (1 - urgencyRatio));
-        const deadlineBar = item.dueDate ? `<div class="mt-3.5 h-3 overflow-hidden rounded-full border border-slate-200/80 bg-slate-100 shadow-inner" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(urgencyProgress)}" aria-label="Proximidade do prazo"><div class="h-full rounded-full transition-[width,background-color] duration-700 ease-out" style="width:${urgencyProgress}%;background:linear-gradient(90deg,hsl(${urgencyHue} 86% 58%),hsl(${urgencyHue} 78% 42%));box-shadow:0 0 8px hsl(${urgencyHue} 78% 48% / 35%)"></div></div>` : '';
+        const dueTimestamp = item.dueDate ? new Date(`${item.dueDate}T${item.dueTime || '23:59:59'}`).getTime() : NaN;
+        const createdTimestamp = item.createdAt ? new Date(item.createdAt).getTime() : NaN;
+        const progressStartTimestamp = Number.isFinite(createdTimestamp) ? createdTimestamp : dueTimestamp - 86400000;
+        const progressDuration = dueTimestamp - progressStartTimestamp;
+        const urgencyProgress = completed
+          ? 100
+          : !Number.isFinite(dueTimestamp) ? 0
+            : dueTimestamp <= nowTimestamp ? 100
+              : progressDuration > 0
+                ? Math.max(0, Math.min(100, ((nowTimestamp - progressStartTimestamp) / progressDuration) * 100))
+                : 0;
+        const urgencyHue = 145;        const deadlineBar = item.dueDate ? `<div class="mt-3.5 h-3 overflow-hidden rounded-full border border-slate-200/80 bg-slate-100 shadow-inner" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(urgencyProgress)}" aria-label="Proximidade do prazo"><div class="h-full rounded-full transition-[width,background-color] duration-700 ease-out" style="width:${urgencyProgress}%;background:linear-gradient(90deg,hsl(${urgencyHue} 86% 58%),hsl(${urgencyHue} 78% 42%));box-shadow:0 0 8px hsl(${urgencyHue} 78% 48% / 35%)"></div></div>` : '';
         const completeButton = completed
           ? '<i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>Reabrir'
           : '<i data-lucide="circle-check" class="h-3.5 w-3.5"></i>Concluído';
@@ -4770,6 +4772,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
 
       // Atualiza o relógio e verifica prazos a cada 5 segundos
       setInterval(updateClockAndMonitor, 5000);
+      setInterval(renderTaskReminders, 15000);
       setInterval(() => {
         const professorView = document.getElementById('professor-view');
         if (professorLocatorFollowsCurrent && professorView && !professorView.classList.contains('hidden')) {
