@@ -326,7 +326,7 @@
           <!-- Botão Principal: Lembrete -->
           <button id="new-reminder-button" onclick="openCurrentReminderForm()"
             class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-semibold px-4 py-2 rounded-xl shadow-sm transition text-sm">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <i id="new-reminder-icon" data-lucide="plus-circle" class="w-4 h-4"></i>
             <span id="new-reminder-label">Nova Reserva</span>
           </button>
         </div>
@@ -561,7 +561,7 @@
           <button id="workshop-calendar-tab" type="button" role="tab" aria-selected="false" aria-controls="workshop-calendar-panel" onclick="switchWorkshopView('calendar')" class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">Calendário</button>
         </div>
         <div class="flex items-center gap-2">
-          <button type="button" onclick="openWorkshopRegistration()" class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 sm:px-4 sm:text-sm"><i data-lucide="plus" class="h-4 w-4"></i><span>Agendar oficina</span></button>
+
           <span id="workshop-count" class="text-xs font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">0</span>
         </div>
       </div>
@@ -2103,7 +2103,11 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         else sidebarButton.removeAttribute('aria-current');
       });
       const label = document.getElementById('new-reminder-label');
-      if (label) label.textContent = tab === 'tasks' ? 'Adicionar Lembrete' : 'Nova Reserva';
+      const icon = document.getElementById('new-reminder-icon');
+      const newButton = document.getElementById('new-reminder-button');
+      if (label) label.textContent = tab === 'tasks' ? 'Adicionar Lembrete' : tab === 'workshops' ? 'Agendar oficina' : 'Nova Reserva';
+      if (icon) icon.setAttribute('data-lucide', tab === 'workshops' ? 'calendar-plus' : 'plus-circle');
+      if (newButton) newButton.setAttribute('aria-label', tab === 'workshops' ? 'Agendar oficina' : tab === 'tasks' ? 'Adicionar lembrete' : 'Nova reserva');
       if (tab === 'tasks') renderTaskReminders();
       if (tab === 'workshops') {
         renderWorkshops();
@@ -2636,6 +2640,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     };
     const ROBOTICS_GRADE_TEACHERS = { 1: 'Domenica', 2: 'Pamela', 3: 'Katia', 4: 'Ana Flavia', 5: 'Lisandra' };
 
+    const ROBOTICS_SLOT_PERIODS = { '1': [1, 2], '2': [2, 3], '3': [3, 4], '4': [4, 5] };
+
     function normalizeRoboticsWorkshopTeachers() {
       if (!settings || !Array.isArray(settings.workshops)) return;
       settings.workshops.forEach(workshop => {
@@ -2656,6 +2662,10 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     function openCurrentReminderForm() {
+      if (!document.getElementById('workshops-view').classList.contains('hidden')) {
+        openWorkshopRegistration();
+        return;
+      }
       if (!document.getElementById('task-reminders-view').classList.contains('hidden')) {
         openTaskReminderForm();
         return;
@@ -2849,16 +2859,14 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         return;
       }
       settings.workshops = Array.isArray(settings.workshops) ? settings.workshops : [];
-      const startMinutes = Number(schedule.startTime.slice(0, 2)) * 60 + Number(schedule.startTime.slice(3));
-      const endMinutes = Number(schedule.endTime.slice(0, 2)) * 60 + Number(schedule.endTime.slice(3));
       const overlaps = settings.workshops.some(item => {
         if (item.date !== date || item.id === id) return false;
-        const existingStart = Number(item.startTime.slice(0, 2)) * 60 + Number(item.startTime.slice(3));
-        const existingEnd = Number(item.endTime.slice(0, 2)) * 60 + Number(item.endTime.slice(3));
-        return startMinutes < existingEnd && endMinutes > existingStart;
+        const newPeriods = ROBOTICS_SLOT_PERIODS[String(slot)] || [];
+        const existingPeriods = ROBOTICS_SLOT_PERIODS[String(item.slot)] || [];
+        return newPeriods.filter(period => existingPeriods.includes(period)).length === 2;
       });
       if (overlaps) {
-        showToast('Já existe uma oficina marcada em horário sobreposto nessa data.', 'warning');
+        showToast('Já existe uma oficina nesse mesmo bloco de dois horários nessa data.', 'warning');
         return;
       }
       const workshopData = { date, teacher, grade, slot, startTime: schedule.startTime, endTime: schedule.endTime, notes };
@@ -3212,7 +3220,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       const list = document.getElementById('workshops-list');
       if (!list) return;
       const dayNames = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
-      const items = [...(settings.workshops || [])].sort((a, b) => `${a.date}T${a.startTime}`.localeCompare(`${b.date}T${b.startTime}`));
+      const items = [...(settings.workshops || [])].sort((a, b) => Number(a.status === 'completed') - Number(b.status === 'completed') || `${a.date}T${a.startTime}`.localeCompare(`${b.date}T${b.startTime}`));
       document.getElementById('workshop-count').textContent = items.length;
       document.getElementById('workshops-empty').classList.toggle('hidden', items.length > 0);
       list.innerHTML = items.map(workshop => {
