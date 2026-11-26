@@ -362,7 +362,7 @@
         <input id="task-reminder-id" type="hidden" />
         <div class="grid gap-4 sm:grid-cols-2">
           <div class="sm:col-span-2"><label for="task-reminder-title" class="mb-1 block text-xs font-semibold text-slate-700">Lembrete e Entrega</label><input id="task-reminder-title" required maxlength="140" placeholder="Ex.: corrigir avaliações do 5º ano" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
-          <div><label for="task-reminder-category" class="mb-1 block text-xs font-semibold text-slate-700">Tipo de Lembrete ou Entrega</label><select id="task-reminder-category" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"><option value="">Selecione</option><option>Correção de avaliações</option><option>Desenvolvimento de design gráfico</option><option>Suporte a professores e alunos (senhas e acessos)</option><option>Desenvolvimento ou impressão de projetos em 3D</option><option>Acompanhamento da equipe de Robótica</option><option>Formação coletiva com professores</option><option>Formação individual com professores</option><option>Outra demanda</option></select></div>
+          <div><label for="task-reminder-category" class="mb-1 block text-xs font-semibold text-slate-700">Tipo de Lembrete ou Entrega</label><select id="task-reminder-category" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"><option value="">Selecione</option></select></div>
           <div><label for="task-reminder-due-date" class="mb-1 block text-xs font-semibold text-slate-700">Prazo para finalizar</label><input id="task-reminder-due-date" type="date" required class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
           <div><label for="task-reminder-due-time" class="mb-1 block text-xs font-semibold text-slate-700">Horário (opcional)</label><input id="task-reminder-due-time" type="time" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
           <div><label for="task-reminder-requester" class="mb-1 block text-xs font-semibold text-slate-700">Quem solicitou</label><input id="task-reminder-requester" required maxlength="100" placeholder="Nome do solicitante" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500" /></div>
@@ -534,10 +534,11 @@
 
   <main id="workshops-view" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6" aria-labelledby="workshops-heading">
     <div id="workshop-main-tabs" class="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" role="tablist" aria-label="Seções das oficinas de robótica">
+      <button id="workshop-management-tab" type="button" role="tab" aria-selected="true" aria-controls="workshop-management-panel" onclick="switchWorkshopSection('management')" class="rounded-xl px-4 py-2 text-sm font-semibold bg-emerald-600 text-white transition"><i data-lucide="clipboard-list" class="mr-1.5 inline-block h-4 w-4 align-[-3px]"></i>Agenda das oficinas</button>
       <button id="workshop-calendar-section-tab" type="button" role="tab" aria-selected="false" aria-controls="workshop-calendar-section-panel" onclick="switchWorkshopSection('calendar')" class="rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="calendar-days" class="mr-1.5 inline-block h-4 w-4 align-[-3px]"></i>Calendário</button>
       <button id="workshop-progress-tab" type="button" role="tab" aria-selected="false" aria-controls="workshop-progress-panel" onclick="switchWorkshopSection('progress')" class="rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="chart-no-axes-column-increasing" class="mr-1.5 inline-block h-4 w-4 align-[-3px]"></i>Acompanhamento</button>
     </div>
-    <div id="workshop-management-panel" role="tabpanel" aria-label="Agenda das oficinas" class="space-y-6">
+    <div id="workshop-management-panel" role="tabpanel" aria-labelledby="workshop-management-tab" class="space-y-6">
     <section id="workshop-registration-panel" class="hidden bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
       <div class="flex items-start gap-3">
         <div class="w-11 h-11 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i data-lucide="bot" class="w-5 h-5"></i></div>
@@ -587,7 +588,7 @@
       </div>
     </section>
     <section id="workshop-progress-panel" role="tabpanel" aria-labelledby="workshop-progress-tab" class="hidden space-y-4">
-      <div class="flex justify-start"><button type="button" onclick="switchWorkshopSection('reports')" class="workshop-quick-register inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"><i data-lucide="circle-plus" class="h-4 w-4"></i>Acompanhamento Detalhado</button></div>
+      <div class="flex justify-start"><button type="button" onclick="openWorkshopFollowupRegister()" class="workshop-quick-register inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"><i data-lucide="circle-plus" class="h-4 w-4"></i>Acompanhamento Detalhado</button></div>
       <section class="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white shadow-sm">
         <div class="min-w-0 flex-1"><span class="inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold">Meta anual: 18 oficinas (1º–5º) · 22 oficinas (6º–9º)</span><h2 class="mt-2 text-lg font-extrabold">Monitoramento de Cadência (1º ao 9º Ano)</h2><p class="mt-1 max-w-2xl text-xs leading-relaxed text-emerald-50">Acompanhe o progresso anual e identifique turmas há mais de 15 dias sem oficina de robótica.</p></div>
         <div class="grid min-w-[210px] grid-cols-2 gap-4 rounded-xl border border-white/20 bg-white/10 p-3"><div><p class="text-[11px] font-semibold text-emerald-50">Turmas em alerta<br>(&gt;15d)</p><p id="workshop-progress-alert-count" class="mt-1 text-2xl font-extrabold text-amber-200">0</p></div><div class="border-l border-white/20 pl-4"><p class="text-[11px] font-semibold text-emerald-50">Média<br>concluída</p><p id="workshop-progress-average" class="mt-1 text-2xl font-extrabold">0%</p></div></div>
@@ -595,7 +596,6 @@
       <div id="workshop-progress-grade-filters" class="flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Filtrar acompanhamento por ano escolar"></div>
       <div id="workshop-progress-cards" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"></div>
       <div id="workshop-progress-empty" class="hidden rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">Cadastre turmas na aba Dados do acompanhamento para iniciar o monitoramento anual.</div>
-      <div class="flex justify-end"><button type="button" onclick="switchWorkshopSection('reports')" class="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-2.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"><i data-lucide="external-link" class="h-4 w-4"></i>Abrir registros e relatórios detalhados</button></div>
     </section>
     <section id="workshop-followup-panel" role="tabpanel" aria-label="Registros técnicos detalhados" class="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div class="flex items-center justify-between border-b border-slate-200 bg-white p-3"><button type="button" onclick="switchWorkshopSection('progress')" class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"><i data-lucide="arrow-left" class="h-4 w-4"></i>Voltar ao acompanhamento</button><span class="text-xs font-semibold text-slate-500">Registros e relatórios completos</span></div>
@@ -768,6 +768,7 @@
         <div class="grid grid-cols-2 gap-1 sm:grid-cols-3" role="tablist" aria-label="Abas de configurações">
           <button id="settings-tab-school" type="button" role="tab" aria-selected="true" aria-controls="settings-panel-school" onclick="switchSettingsTab('school')" class="settings-tab rounded-lg px-2 py-2 text-xs font-semibold text-white bg-emerald-600">Dados da escola</button>
           <button id="settings-tab-records" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-records" onclick="switchSettingsTab('records')" class="settings-tab rounded-lg px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-emerald-50">Dados cadastrados</button>
+          <button id="settings-tab-reminders" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-reminders" onclick="switchSettingsTab('reminders')" class="settings-tab rounded-lg px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-emerald-50">Lembretes</button>
           <button id="settings-tab-links" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-links" onclick="switchSettingsTab('links')" class="settings-tab rounded-lg px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-emerald-50"><i data-lucide="workflow" class="mr-1 inline-block h-3.5 w-3.5 align-[-2px]"></i>Vínculos</button>
           <button id="settings-tab-schedule" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-schedule" onclick="switchSettingsTab('schedule')" class="settings-tab rounded-lg px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-emerald-50">Horários dos professores</button>
           <button id="settings-tab-robotics" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-robotics" onclick="switchSettingsTab('robotics')" class="settings-tab rounded-lg px-2 py-2 text-xs font-semibold text-slate-600 hover:bg-emerald-50"><i data-lucide="bot" class="mr-1 inline-block h-3.5 w-3.5 align-[-2px]"></i>Robótica</button>
@@ -795,6 +796,17 @@
           </div>
           <p id="school-data-save-status" class="text-[11px] text-emerald-700" aria-live="polite">Dados salvos neste navegador.</p>
         </div>
+        </section>
+        <section id="settings-panel-reminders" role="tabpanel" aria-labelledby="settings-tab-reminders" class="settings-panel hidden space-y-3" aria-label="Configuração dos tipos de lembrete">
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">Lembretes</h4>
+            <p class="mt-1 text-xs text-slate-500">Edite as opções exibidas em “Tipo de Lembrete ou Entrega”. As mudanças são salvas nas configurações desta conta.</p>
+          </div>
+          <form onsubmit="addTaskReminderCategory(event)" class="flex gap-2">
+            <input id="task-reminder-category-new" type="text" maxlength="80" required placeholder="Novo tipo de lembrete" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+            <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700">Adicionar</button>
+          </form>
+          <div id="task-reminder-category-list" class="space-y-2"></div>
         </section>
         <section id="settings-panel-records" role="tabpanel" aria-labelledby="settings-tab-records" class="settings-panel hidden rounded-xl border border-slate-200 bg-slate-50 p-3.5 space-y-3" aria-label="Dados cadastrados">
           <div>
@@ -1066,6 +1078,16 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       { name: 'Caixa de Som', icon: 'speaker' }
     ];
 
+    const DEFAULT_TASK_REMINDER_CATEGORIES = [
+      'Correção de avaliações',
+      'Desenvolvimento de design gráfico',
+      'Suporte a professores e alunos (senhas e acessos)',
+      'Desenvolvimento ou impressão de projetos em 3D',
+      'Acompanhamento da equipe de Robótica',
+      'Formação coletiva com professores',
+      'Formação individual com professores',
+      'Outra demanda'
+    ];
     let bookings = [];
     let taskReminders = [];
     let settings = {
@@ -1075,6 +1097,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       teachers: [],
       classes: [],
       equipment: [],
+      taskReminderCategories: [...DEFAULT_TASK_REMINDER_CATEGORIES],
       workshops: [],
       schoolCatalogsResetV1: false
     };
@@ -1276,11 +1299,17 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         classes: [],
         classModuleLinks: {},
         equipment: [],
+        taskReminderCategories: [...DEFAULT_TASK_REMINDER_CATEGORIES],
         workshops: [],
         professorNames: [...PROFESSOR_SCHEDULE_TEACHERS],
         professorSchedule: getDefaultProfessorAssignments(),
         schoolCatalogsResetV1: true
       };
+    }
+
+    function ensureTaskReminderCategories() {
+      const source = Array.isArray(settings.taskReminderCategories) ? settings.taskReminderCategories : DEFAULT_TASK_REMINDER_CATEGORIES;
+      settings.taskReminderCategories = [...new Map(source.map(value => String(value || '').trim()).filter(Boolean).map(value => [value.toLocaleLowerCase('pt-BR'), value])).values()];
     }
 
     function ensureProfessorSchedule() {
@@ -2775,7 +2804,91 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       );
     }
 
+    function renderTaskReminderCategories() {
+      ensureTaskReminderCategories();
+      const categories = settings.taskReminderCategories;
+      const select = document.getElementById('task-reminder-category');
+      if (select) {
+        const selected = select.value;
+        select.innerHTML = '<option value="">Selecione</option>' + categories.map(category => `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`).join('');
+        if (selected && !categories.includes(selected)) {
+          const historical = document.createElement('option');
+          historical.value = selected;
+          historical.textContent = selected;
+          select.appendChild(historical);
+        }
+        select.value = selected;
+      }
+      const list = document.getElementById('task-reminder-category-list');
+      if (!list) return;
+      list.innerHTML = categories.length ? categories.map((category, index) => `
+        <div class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-2.5 sm:flex-row sm:items-center">
+          <input id="task-reminder-category-edit-${index}" type="text" maxlength="80" value="${escapeHTML(category)}" aria-label="Nome do tipo de lembrete" class="min-w-0 flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm">
+          <div class="flex shrink-0 gap-2">
+            <button type="button" onclick="renameTaskReminderCategory(${index})" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Salvar</button>
+            <button type="button" onclick="removeTaskReminderCategory(${index})" class="rounded-lg border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50">Remover</button>
+          </div>
+        </div>`).join('') : '<div class="rounded-xl border border-dashed border-slate-300 p-4 text-center text-xs text-slate-500">Nenhum tipo cadastrado. Adicione uma opção acima.</div>';
+    }
+
+    function addTaskReminderCategory(event) {
+      event?.preventDefault();
+      const input = document.getElementById('task-reminder-category-new');
+      const name = input.value.trim();
+      if (!name) return;
+      ensureTaskReminderCategories();
+      if (settings.taskReminderCategories.some(category => category.toLocaleLowerCase('pt-BR') === name.toLocaleLowerCase('pt-BR'))) {
+        showToast('Esse tipo de lembrete já está cadastrado.', 'error');
+        return;
+      }
+      settings.taskReminderCategories.push(name);
+      input.value = '';
+      saveState();
+      renderTaskReminderCategories();
+      showToast('Tipo de lembrete adicionado.', 'success');
+    }
+
+    function renameTaskReminderCategory(index) {
+      ensureTaskReminderCategories();
+      const currentName = settings.taskReminderCategories[index];
+      const input = document.getElementById(`task-reminder-category-edit-${index}`);
+      const newName = input?.value.trim();
+      if (!currentName || !newName) {
+        showToast('Informe um nome para o tipo de lembrete.', 'error');
+        return;
+      }
+      if (settings.taskReminderCategories.some((category, i) => i !== index && category.toLocaleLowerCase('pt-BR') === newName.toLocaleLowerCase('pt-BR'))) {
+        showToast('Esse tipo de lembrete já está cadastrado.', 'error');
+        return;
+      }
+      settings.taskReminderCategories[index] = newName;
+      taskReminders = taskReminders.map(reminder => reminder.category === currentName ? { ...reminder, category: newName } : reminder);
+      const select = document.getElementById('task-reminder-category');
+      if (select?.value === currentName) select.value = newName;
+      saveState();
+      renderTaskReminderCategories();
+      renderTaskReminders();
+      showToast('Tipo de lembrete renomeado.', 'success');
+    }
+
+    function removeTaskReminderCategory(index) {
+      ensureTaskReminderCategories();
+      const category = settings.taskReminderCategories[index];
+      if (!category) return;
+      const inUse = taskReminders.some(reminder => reminder.category === category);
+      const message = inUse
+        ? `Remover “${category}” das opções? Os lembretes existentes serão mantidos com o nome atual.`
+        : `Remover “${category}” das opções?`;
+      if (!window.confirm(message)) return;
+      settings.taskReminderCategories.splice(index, 1);
+      const select = document.getElementById('task-reminder-category');
+      if (select?.value === category) select.value = '';
+      saveState();
+      renderTaskReminderCategories();
+      showToast('Tipo de lembrete removido das opções.', 'info');
+    }
     function renderTaskReminders() {
+      renderTaskReminderCategories();
       const list = document.getElementById('task-reminders-list');
       if (!list) return;
       const empty = document.getElementById('task-reminders-empty');
@@ -2955,6 +3068,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       const validSections = ['management', 'calendar', 'progress', 'reports'];
       if (!validSections.includes(section)) section = 'management';
       const tabs = {
+        management: document.getElementById('workshop-management-tab'),
         calendar: document.getElementById('workshop-calendar-section-tab'),
         progress: document.getElementById('workshop-progress-tab')
       };
@@ -2982,6 +3096,20 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       if (section === 'calendar') renderWorkshopCalendar();
       if (section === 'progress' || section === 'reports') renderWorkshopPedagogicalProgress();
       lucide.createIcons();
+    }
+
+    function openWorkshopFollowupRegister() {
+      const frame = document.getElementById('workshop-followup-frame');
+      const selectRegisterTab = () => {
+        const childWindow = frame.contentWindow;
+        if (typeof childWindow?.switchTab === 'function') childWindow.switchTab('register');
+      };
+      const frameIsReady = typeof frame.contentWindow?.switchTab === 'function';
+      if (!frameIsReady) {
+        frame.addEventListener('load', () => window.setTimeout(selectRegisterTab, 0), { once: true });
+      }
+      switchWorkshopSection('reports');
+      if (frameIsReady) window.setTimeout(selectRegisterTab, 0);
     }
 
     function openWorkshopRegistration() {
@@ -4150,7 +4278,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     function switchSettingsTab(tab) {
-      const validTabs = ['school', 'records', 'links', 'schedule', 'robotics', 'other'];
+      const validTabs = ['school', 'reminders', 'records', 'links', 'schedule', 'robotics', 'other'];
       if (!validTabs.includes(tab)) tab = 'school';
       validTabs.forEach(name => {
         const button = document.getElementById('settings-tab-' + name);
@@ -4164,6 +4292,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       if (tab === 'robotics') moveRoboticsFrameToSettings();
       else restoreRoboticsFrameToWorkshops();
       if (tab === 'links') renderClassModuleLinks();
+      if (tab === 'reminders') renderTaskReminderCategories();
     }
 
     function closeSettingsModal() {
