@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lembretes-edutec-shell-v54';
+const CACHE_NAME = 'lembretes-edutec-shell-v56';
 const OFFLINE_DEPENDENCIES = [
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/lucide@latest',

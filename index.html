@@ -534,11 +534,10 @@
 
   <main id="workshops-view" class="hidden flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6" aria-labelledby="workshops-heading">
     <div id="workshop-main-tabs" class="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" role="tablist" aria-label="Seções das oficinas de robótica">
-      <button id="workshop-management-tab" type="button" role="tab" aria-selected="true" aria-controls="workshop-management-panel" onclick="switchWorkshopSection('management')" class="rounded-xl px-4 py-2 text-sm font-semibold bg-emerald-600 text-white transition"><i data-lucide="clipboard-list" class="mr-1.5 inline-block h-4 w-4 align-[-3px]"></i>Agenda & Registro</button>
-      <button id="workshop-weekly-tab" type="button" role="tab" aria-selected="false" aria-controls="workshop-weekly-panel" onclick="switchWorkshopSection('weekly')" class="rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="calendar-days" class="mr-1.5 inline-block h-4 w-4 align-[-3px]"></i>Grade Semanal</button>
+      <button id="workshop-calendar-section-tab" type="button" role="tab" aria-selected="false" aria-controls="workshop-calendar-section-panel" onclick="switchWorkshopSection('calendar')" class="rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="calendar-days" class="mr-1.5 inline-block h-4 w-4 align-[-3px]"></i>Calendário</button>
       <button id="workshop-progress-tab" type="button" role="tab" aria-selected="false" aria-controls="workshop-progress-panel" onclick="switchWorkshopSection('progress')" class="rounded-xl px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition"><i data-lucide="chart-no-axes-column-increasing" class="mr-1.5 inline-block h-4 w-4 align-[-3px]"></i>Acompanhamento</button>
     </div>
-    <div id="workshop-management-panel" role="tabpanel" aria-labelledby="workshop-management-tab" class="space-y-6">
+    <div id="workshop-management-panel" role="tabpanel" aria-label="Agenda das oficinas" class="space-y-6">
     <section id="workshop-registration-panel" class="hidden bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-5">
       <div class="flex items-start gap-3">
         <div class="w-11 h-11 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i data-lucide="bot" class="w-5 h-5"></i></div>
@@ -556,20 +555,22 @@
     </section>
     <section class="space-y-3" aria-label="Lembretes das oficinas de robótica">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-2" role="tablist" aria-label="Visualização das oficinas">
-          <button id="workshop-agenda-tab" type="button" role="tab" aria-selected="true" aria-controls="workshop-agenda-panel" onclick="switchWorkshopView('agenda')" class="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Agenda das oficinas</button>
-          <button id="workshop-calendar-tab" type="button" role="tab" aria-selected="false" aria-controls="workshop-calendar-panel" onclick="switchWorkshopView('calendar')" class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-700">Calendário</button>
-        </div>
+        <h2 class="text-sm font-bold text-slate-800">Agenda das oficinas</h2>
         <div class="flex items-center gap-2">
 
           <span id="workshop-count" class="text-xs font-semibold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">0</span>
         </div>
       </div>
-      <div id="workshop-agenda-panel" role="tabpanel" aria-labelledby="workshop-agenda-tab">
+      <div id="workshop-agenda-panel" aria-label="Agenda das oficinas">
         <div id="workshops-list" class="space-y-3"></div>
         <div id="workshops-empty" class="hidden rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center"><p class="font-bold text-slate-800">Nenhuma oficina cadastrada</p><p class="mt-1 text-sm text-slate-500">Adicione a data, a professora, o ano escolar e o bloco de horários sinalizado.</p></div>
       </div>
-      <div id="workshop-calendar-panel" role="tabpanel" aria-labelledby="workshop-calendar-tab" class="hidden rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
+
+    </section>
+    </div>
+    <section id="workshop-calendar-section-panel" role="tabpanel" aria-labelledby="workshop-calendar-section-tab" class="hidden space-y-3">
+      <h2 class="text-sm font-bold text-slate-800">Calendário das oficinas</h2>
+      <div id="workshop-calendar-panel" class="rounded-2xl border border-slate-200 bg-white p-3 sm:p-5 shadow-sm">
         <div class="mb-4 flex items-center justify-between gap-3">
           <button type="button" onclick="changeWorkshopCalendarMonth(-1)" aria-label="Mês anterior" class="rounded-xl border border-slate-200 p-2.5 text-slate-600 hover:bg-slate-50"><i data-lucide="chevron-left" class="h-4 w-4"></i></button>
           <h3 id="workshop-calendar-title" class="text-base font-bold capitalize text-slate-900"></h3>
@@ -584,14 +585,6 @@
         </div>
         <p class="mt-3 text-[11px] text-slate-500">O calendário mostra os dias letivos de segunda a sexta. Selecione uma data para iniciar um lembrete naquele dia.</p>
       </div>
-    </section>
-    </div>
-    <section id="workshop-weekly-panel" role="tabpanel" aria-labelledby="workshop-weekly-tab" class="hidden space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div><h2 class="font-bold text-slate-900">Grade Semanal do Laboratório de Robótica</h2><p class="text-xs text-slate-500">Distribuição das oficinas por dia da semana.</p></div>
-        <div class="flex items-center gap-2"><button type="button" onclick="changeWorkshopWeek(-1)" aria-label="Semana anterior" class="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"><i data-lucide="chevron-left" class="h-4 w-4"></i></button><span id="workshop-week-range" class="min-w-36 text-center text-xs font-semibold text-slate-700"></span><button type="button" onclick="changeWorkshopWeek(1)" aria-label="Próxima semana" class="rounded-lg border border-slate-200 p-2 text-slate-600 hover:bg-slate-50"><i data-lucide="chevron-right" class="h-4 w-4"></i></button></div>
-      </div>
-      <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"><div id="workshop-week-grid" class="grid min-w-[650px] grid-cols-5 gap-2"></div></div>
     </section>
     <section id="workshop-progress-panel" role="tabpanel" aria-labelledby="workshop-progress-tab" class="hidden space-y-4">
       <div class="flex justify-start"><button type="button" onclick="switchWorkshopSection('reports')" class="workshop-quick-register inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700"><i data-lucide="circle-plus" class="h-4 w-4"></i>Acompanhamento Detalhado</button></div>
@@ -2111,7 +2104,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       if (tab === 'tasks') renderTaskReminders();
       if (tab === 'workshops') {
         renderWorkshops();
-        if (!document.getElementById('workshop-weekly-panel').classList.contains('hidden')) renderWorkshopWeeklyGrid();
+        if (!document.getElementById('workshop-calendar-section-panel').classList.contains('hidden')) renderWorkshopCalendar();
         if (!document.getElementById('workshop-progress-panel').classList.contains('hidden')) renderWorkshopPedagogicalProgress();
       }
       if (tab === 'professor') {
@@ -2959,16 +2952,15 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     function switchWorkshopSection(section) {
-      const validSections = ['management', 'weekly', 'progress', 'reports'];
+      const validSections = ['management', 'calendar', 'progress', 'reports'];
       if (!validSections.includes(section)) section = 'management';
       const tabs = {
-        management: document.getElementById('workshop-management-tab'),
-        weekly: document.getElementById('workshop-weekly-tab'),
+        calendar: document.getElementById('workshop-calendar-section-tab'),
         progress: document.getElementById('workshop-progress-tab')
       };
       const panels = {
         management: document.getElementById('workshop-management-panel'),
-        weekly: document.getElementById('workshop-weekly-panel'),
+        calendar: document.getElementById('workshop-calendar-section-panel'),
         progress: document.getElementById('workshop-progress-panel'),
         reports: document.getElementById('workshop-followup-panel')
       };
@@ -2976,6 +2968,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       Object.entries(panels).forEach(([name, panel]) => panel.classList.toggle('hidden', name !== section));
       Object.entries(tabs).forEach(([name, button]) => {
         const selected = name === section || (section === 'reports' && name === 'progress');
+        if (!button) return;
         button.setAttribute('aria-selected', String(selected));
         button.className = 'inline-flex items-center rounded-xl px-4 py-2 text-sm font-semibold transition ' +
           (selected ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700');
@@ -2986,7 +2979,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         followupFrame.dataset.loaded = 'true';
       }
       if (section === 'management') renderWorkshops();
-      if (section === 'weekly') renderWorkshopWeeklyGrid();
+      if (section === 'calendar') renderWorkshopCalendar();
       if (section === 'progress' || section === 'reports') renderWorkshopPedagogicalProgress();
       lucide.createIcons();
     }
@@ -3146,21 +3139,6 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       }
     }
 
-    function switchWorkshopView(view) {
-      const showCalendar = view === 'calendar';
-      const agendaPanel = document.getElementById('workshop-agenda-panel');
-      const calendarPanel = document.getElementById('workshop-calendar-panel');
-      const agendaTab = document.getElementById('workshop-agenda-tab');
-      const calendarTab = document.getElementById('workshop-calendar-tab');
-      agendaPanel.classList.toggle('hidden', showCalendar);
-      calendarPanel.classList.toggle('hidden', !showCalendar);
-      agendaTab.setAttribute('aria-selected', String(!showCalendar));
-      calendarTab.setAttribute('aria-selected', String(showCalendar));
-      agendaTab.className = 'rounded-xl px-4 py-2 text-sm font-semibold ' + (showCalendar ? 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700' : 'bg-emerald-600 text-white');
-      calendarTab.className = 'rounded-xl px-4 py-2 text-sm font-semibold ' + (showCalendar ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700');
-      if (showCalendar) renderWorkshopCalendar();
-    }
-
     function changeWorkshopCalendarMonth(amount) {
       workshopCalendarDate = new Date(workshopCalendarDate.getFullYear(), workshopCalendarDate.getMonth() + amount, 1);
       renderWorkshopCalendar();
@@ -3171,10 +3149,8 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
     }
 
     function selectWorkshopCalendarDate(date) {
+      openWorkshopRegistration();
       document.getElementById('workshop-date').value = date;
-      switchWorkshopView('agenda');
-      document.getElementById('workshop-grade').focus();
-      document.getElementById('workshop-form').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function renderWorkshopCalendar() {
@@ -3249,7 +3225,7 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
         </article>`;
       }).join('');
       lucide.createIcons();
-      if (!document.getElementById('workshop-calendar-panel').classList.contains('hidden')) renderWorkshopCalendar();
+      if (!document.getElementById('workshop-calendar-section-panel').classList.contains('hidden')) renderWorkshopCalendar();
     }
 
     function renderNextActionCard(now) {
@@ -4166,7 +4142,6 @@ const PROFESSOR_SCHEDULE_ROWS = `0|07:00-07:50|24:0,10:1,22:2,11:3,13:4,19:5,16:
       if (frameDocument) frameDocument.getElementById('tab-' + view)?.click();
       ['catalog', 'data'].forEach(name => {
         const button = document.getElementById('settings-robotics-tab-' + name);
-        if (!button) return;
         const selected = name === view;
         button.setAttribute('aria-selected', String(selected));
         button.className = 'rounded-lg px-3 py-2 text-xs font-semibold ' + (selected ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-emerald-50');
